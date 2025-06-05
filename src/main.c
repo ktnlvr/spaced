@@ -7,7 +7,7 @@
 int main(void) {
   byte* kb = (byte*)malloc(0x10000);
 
-  FILE* file = fopen("./extra/assembler/o.bin", "rb");
+  FILE* file = fopen("./o.bin", "rb");
   fseek(file, 0, SEEK_END);
   long size = ftell(file);
   rewind(file);

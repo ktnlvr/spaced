@@ -19,21 +19,17 @@ typedef enum op_register_t {
 } op_register_t;
 
 typedef enum op_t {
-  // nothing
   OP_NOOP = 0b00000000,
 #define _OP_NOOP() OP_NOOP
   OP_BREAK = 0b00000001,
+  // A <- M[PC++]
+  OP_CONST = 0b00000010,
+#define _OP_CONST()
 
   // `0b00 010 XXX`: X <- M[AR]
   OP_READ = 0b00010000,
   // `0b00 011 XXX`: M[AR] <- X
   OP_WRITE = 0b00011000,
-
-  // `0b00 100 XXX`: X <- X + 1
-  OP_INC = 0b00100000,
-#define _OP_INC(R) (OP_INC | ((R) & 0b111))
-  // `0b00 101 XXX`: X <- X - 1
-  OP_DEC = 0b00101000,
 
   // `0b00 110 XXX`: if X = 0 then PC <- AR else NOOP
   OP_JMPZ = 0b00110000,
@@ -57,9 +53,6 @@ typedef enum op_t {
   OP_AND,
   // `0b01 110 XXX`: A <- A | X
   OP_OR,
-  // `0b01 111 CCC`: A <- C
-  OP_CONST = 0b01111000,
-#define _OP_CONST(C) (OP_CONST | (C & 0b111))
 
   // `0b10 XXX YYY`: Swap data between two places `X, Y <- Y, X`
   OP_SWAP = 0b10000000,

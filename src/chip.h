@@ -65,7 +65,7 @@ static u16 chip_get_ar(chip_t *self) {
   return (((u16)self->registers[R_AR_HI] << 8) | (self->registers[R_AR_LO]));
 }
 
-static void chip_load_program(chip_t* self, byte* program, u16 length) {
+static void chip_load_program(chip_t *self, byte *program, u16 length) {
   if (length > (CHIP_MEMORY_MAX - CHIP_PROGRAM_START)) {
     self->memory[CHIP_PROGRAM_START] = OP_BREAK;
     return;
@@ -107,6 +107,13 @@ static void chip_step(chip_t *self) {
 
   // Control
   if (msbs == 0b00) {
+    if (value == OP_CONST) {
+      addr = chip_inc_pc(self);
+      value = self->memory[addr];
+      chip_register_write(self, R_ACC, value);
+      return;
+    }
+
     switch (arg1) {
     case 0b110:
       if (chip_register_read(self, arg2) == 0) {
@@ -130,15 +137,11 @@ static void chip_step(chip_t *self) {
     case 0b000:
       chip_register_write(self, R_ACC, acc + r);
       return;
-
-      // Small Constant
-    case 0b111:
-      chip_register_write(self, R_ACC, arg2);
-      return;
     }
   }
 
-  PANIC();
+  // TODO: handle this with more grace
+  PANIC("Unknown instruction 0x%02X", value);
 }
 
 #endif
