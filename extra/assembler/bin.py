@@ -24,7 +24,7 @@ def op_to_bytes(things: list) -> bytes:
         case (Op.JumpIfZero, (ArgKind.Register, r)):
             r = register_indexes[r]
             return b(0b00_110_000 | (r & 0b111))
-    return b(0)
+    return b(1)
 
 
 def binarize(labels: dict[str, int], lines: dict) -> bytearray:
