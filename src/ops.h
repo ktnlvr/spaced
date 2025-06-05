@@ -31,6 +31,11 @@ typedef enum op_t {
   // `0b00 011 XXX`: M[AR] <- X
   OP_WRITE = 0b00011000,
 
+  // `0b00 100 XXX`: -- X
+  OP_PUSH = 0b00100000,
+  // `0b00 101 XXX`: X --
+  OP_POP = 0b00101000,
+
   // `0b00 110 XXX`: if X = 0 then PC <- AR else NOOP
   OP_JMPZ = 0b00110000,
 #define _OP_JMPZ(R) (OP_JMPZ | ((R) & 0b111))

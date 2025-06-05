@@ -23,6 +23,9 @@ def op_to_bytes(things: list) -> bytes:
         case (Op.JumpIfZero, (ArgKind.Register, r)):
             r = register_indexes[r]
             return b(0b00_110_000 | (r & 0b111))
+        case (Op.Push, (ArgKind.Register, r)):
+            r = register_indexes[r];
+            return b(0b00_100_000 | (r & 0b111))
     print(things, "DID NOT MATCH")
     return b(1)
 

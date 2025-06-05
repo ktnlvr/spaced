@@ -24,6 +24,7 @@ int main(void) {
   }
 
   chip_dbg_dump(&chip);
+  chip_dbg_dump_stack(&chip);
 
   return 0;
 }

@@ -25,6 +25,7 @@ class Op(StrEnum):
     Add = "_add"
     Swap = "_swap"
     JumpIfZero = "_jmpz"
+    Push = "_push"
 
 
 def str_to_op(s) -> Optional[Op]:

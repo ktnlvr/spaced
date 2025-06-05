@@ -73,6 +73,29 @@ static void chip_load_program(chip_t *self, byte *program, u16 length) {
 
   memcpy(self->memory, program, length);
 }
+static byte *chip_stack_size_ptr(chip_t *self) {
+  return &self->memory[CHIP_PROGRAM_START - 1];
+}
+
+static void chip_stack_push(chip_t *self, byte value) {
+  byte *ptr = chip_stack_size_ptr(self);
+  self->memory[CHIP_PROGRAM_START - *ptr - 2] = value;
+  ++*ptr;
+}
+
+static byte chip_stack_pop(chip_t *self) {
+  byte *ptr = chip_stack_size_ptr(self);
+  if (*ptr == 0) {
+    // TODO: check if this is warranted
+    // this is basically a hard-coded overflow
+    *ptr = 0xFF;
+    return 0;
+  } else {
+    byte value = *ptr;
+    --*ptr;
+    return value;
+  }
+}
 
 static void chip_dbg_dump(chip_t *self) {
   printf("R_PC=0x%04X, R_X = 0x%02X, R_Y = 0x%02X, R_AR = 0x%04X, R_ACC = "
@@ -80,6 +103,14 @@ static void chip_dbg_dump(chip_t *self) {
          chip_get_pc(self), chip_register_read(self, R_X),
          chip_register_read(self, R_Y), chip_get_ar(self),
          chip_register_read(self, R_ACC));
+}
+
+static void chip_dbg_dump_stack(chip_t *self) {
+  byte size = *chip_stack_size_ptr(self);
+  printf("%d | ", size);
+  for (int i = size; i > 0; i--)
+    printf("%02X ", self->memory[CHIP_PROGRAM_START - i - 1]);
+  printf("\n");
 }
 
 static void chip_step(chip_t *self) {
@@ -115,6 +146,18 @@ static void chip_step(chip_t *self) {
     }
 
     switch (arg1) {
+    case 0b100: {
+      byte value = chip_register_read(self, arg2);
+      chip_stack_push(self, value);
+      return;
+    }
+
+    case 0b101: {
+      byte value = chip_stack_pop(self);
+      chip_register_write(self, arg2, value);
+      return;
+    }
+
     case 0b110:
       if (chip_register_read(self, arg2) == 0) {
         u16 ar = chip_get_ar(self);
