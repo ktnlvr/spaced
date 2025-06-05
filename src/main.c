@@ -1,14 +1,31 @@
 #include <stdio.h>
 
 #include "chip.h"
+#include "ops.h"
 
 int main(void) {
-    byte kb[0x10000] = {0xA9, 11, 0x69, 5};
-    chip_t chip;
+  byte kb[0x10000] = {
+    _OP_NOOP(),
+    _OP_CONST(5),
+    _OP_COPY(R_AR_LO, R_ACC),
 
-    chip_init(&chip, CHIP_QUOTA_POLICY_FLAT, -1, kb);
-    
-    chip_dump_registers_stdout(&chip);
+    _OP_CONST(1),
+    _OP_COPY(R_X, R_ACC),
+    _OP_ADD(R_X),
+    _OP_SWAP(R_X, R_ACC),
+    _OP_JMPZ(R_AR_HI),
+  };
 
-    return 0;
+  chip_t chip;
+
+  chip_init(&chip, CHIP_QUOTA_POLICY_FLAT, 100, kb);
+
+  for (int i = 0; i < 50; i++) {
+    chip_dbg_dump(&chip);
+    chip_step(&chip);
+  }
+
+  chip_dbg_dump(&chip);
+
+  return 0;
 }
