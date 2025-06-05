@@ -4,10 +4,12 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 
-#define PANIC()                                                                \
+#define PANIC(msg, ...)                                                        \
   do {                                                                         \
-    printf("ERR! %s:%d\n", __FILE__, __LINE__);                                \
+    printf("ERR! %s:%d\t\t" msg "\n", __FILE__, __LINE__, __VA_ARGS__);        \
+    abort();                                                                   \
   } while (0)
 
 typedef uint32_t u32;
