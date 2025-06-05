@@ -1,43 +1,25 @@
 import argparse
 from collections import OrderedDict
+from pprint import pprint
 
-from ops import str_to_op, str_to_arg
-from bin import binarize
+from compile import compile
+from parser import parse
+
 
 def main(args):
     file = open(args.filename, 'r')
-    lines = file.readlines()
+    content = file.read()
     file.close()
 
-    labels = {}
-    code = OrderedDict()
+    parsed = parse(content)
+    pprint(parsed)
 
-    for i, line in enumerate(lines):
-        line = line.strip()
+    compiled = compile(parsed)
+    pprint(compiled)
 
-        if not line:
-            continue
+    with open('o.bin', 'wb') as f:
+        f.write(compiled)
 
-        if line.startswith('--'):
-            # Ignore comments
-            continue
-
-        if line.startswith('.'):
-            label = line[1:]
-            labels[label] = i
-            continue
-
-        op, *args = line.split()
-        op = str_to_op(op)
-        args = list(map(str_to_arg, args))
-        code[i] = (op, *args)
-
-    print(labels)
-    print(code)
-
-    b = binarize(labels, code)
-    with open('o.bin', 'wb+') as o:
-        o.write(b)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(

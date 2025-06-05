@@ -7,7 +7,9 @@
     _copy rAL rA 
     _const 1
     _copy rX rA
-    _push rX
-    _add rX
-    _swap rX rA
-    _jmpz rY
+
+    .L1:
+        _push rX
+        _add rX
+        _swap rX rA
+        jmp .L1 
