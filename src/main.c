@@ -1,20 +1,18 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "chip.h"
 #include "ops.h"
 
 int main(void) {
-  byte kb[0x10000] = {
-    _OP_NOOP(),
-    _OP_CONST(5),
-    _OP_COPY(R_AR_LO, R_ACC),
+  byte* kb = (byte*)malloc(0x10000);
 
-    _OP_CONST(1),
-    _OP_COPY(R_X, R_ACC),
-    _OP_ADD(R_X),
-    _OP_SWAP(R_X, R_ACC),
-    _OP_JMPZ(R_AR_HI),
-  };
+  FILE* file = fopen("./extra/assembler/o.bin", "rb");
+  fseek(file, 0, SEEK_END);
+  long size = ftell(file);
+  rewind(file);
+  fread(kb, 1, size, file);
+  fclose(file);
 
   chip_t chip;
 

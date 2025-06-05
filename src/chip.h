@@ -8,6 +8,9 @@
 #include "defs.h"
 #include "ops.h"
 
+#define CHIP_PROGRAM_START 0x0200
+#define CHIP_MEMORY_MAX 0x1000
+
 typedef enum chip_quota_policy_t {
   // Consume 1 per instruction
   CHIP_QUOTA_POLICY_FLAT,
@@ -30,8 +33,9 @@ static void chip_init(chip_t *self, chip_quota_policy_t quota_policy, u32 quota,
 
   self->quota_policy = quota_policy;
   self->quota = quota;
-
   self->memory = memory;
+
+  self->registers[R_PC_HI] = 0x02;
 }
 
 static byte chip_register_read(chip_t *self, register_t r) {
@@ -59,6 +63,15 @@ static u16 chip_inc_pc(chip_t *self) {
 
 static u16 chip_get_ar(chip_t *self) {
   return (((u16)self->registers[R_AR_HI] << 8) | (self->registers[R_AR_LO]));
+}
+
+static void chip_load_program(chip_t* self, byte* program, u16 length) {
+  if (length > (CHIP_MEMORY_MAX - CHIP_PROGRAM_START)) {
+    self->memory[CHIP_PROGRAM_START] = OP_BREAK;
+    return;
+  };
+
+  memcpy(self->memory, program, length);
 }
 
 static void chip_dbg_dump(chip_t *self) {
