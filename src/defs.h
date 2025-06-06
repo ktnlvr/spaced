@@ -6,6 +6,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define PANIC_(msg)                                                            \
+  do {                                                                         \
+    printf("ERR! %s:%d\t\t" msg "\n", __FILE__, __LINE__);                     \
+    abort();                                                                   \
+  } while (0)
+
 #define PANIC(msg, ...)                                                        \
   do {                                                                         \
     printf("ERR! %s:%d\t\t" msg "\n", __FILE__, __LINE__, __VA_ARGS__);        \

@@ -1,0 +1,20 @@
+#ifndef __SPACED_H__MEMORY__
+#define __SPACED_H__MEMORY__
+
+#include "defs.h"
+
+typedef enum addressing_mode_t {
+  ADDR_MODE_ABSOLUTE,
+  ADDR_MODE_ABSOLUTE_X,
+  ADDR_MODE_ABSOLUTE_Y,
+  ADDR_MODE_IMMEDIATE,
+  ADDR_MODE_IMPLIED,
+  ADDR_MODE_INDIRECT,
+  ADDR_MODE_X_INDIRECT,
+  ADDR_MODE_ZERO_PAGE,
+  ADDR_MODE_INDIRECT_Y,
+  ADDR_MODE_ZERO_PAGE_X,
+  ADDR_MODE_ZERO_PAGE_Y,
+} addressing_mode_t;
+
+#endif
