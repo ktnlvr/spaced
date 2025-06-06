@@ -3,9 +3,9 @@ from typing import Optional, Any
 
 
 class Line(StrEnum):
-    Intrinsic = "Intrinsic"
     Label = "Label"
     Instruction = "Instruction"
+    Name = "Name"
 
 
 def parse_number(inp: str) -> Optional[int]:
@@ -49,12 +49,12 @@ def parse(input: str) -> list[Line]:
 
         if line.startswith("_"):
             op, *args = line.split()
-            out.append((Line.Intrinsic, str_to_op(op), *list(map(str_to_arg, args))))
+            out.append((Line.Instruction, str_to_op(op), *list(map(str_to_arg, args))))
             continue
 
         op, *args = line.split()
         out.append(
-            (Line.Instruction, str_to_instruction(op), *list(map(str_to_arg, args)))
+            (Line.Name, str_to_name(op), *list(map(str_to_arg, args)))
         )
 
     return out
@@ -86,6 +86,7 @@ class Op(StrEnum):
     Swap = "_swap"
     JumpIfZero = "_jmpz"
     Push = "_push"
+    Break = "_break"
 
 
 def str_to_op(s) -> Optional[Op]:
@@ -95,12 +96,5 @@ def str_to_op(s) -> Optional[Op]:
     return None
 
 
-class Instruction(StrEnum):
-    Jump = "jmp"
-
-
-def str_to_instruction(s) -> Optional[Instruction]:
-    for ins in Instruction:
-        if str(ins) == s:
-            return ins
-    return None
+def str_to_name(s) -> Optional[str]:
+    return s

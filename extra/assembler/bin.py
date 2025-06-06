@@ -1,6 +1,6 @@
 from typing import Optional
 
-from parser import Op, Instruction, ArgKind
+from parser import Op, ArgKind
 
 
 register_indexes = {"X": 0, "Y": 1, "AL": 2, "AH": 3, "A": 4, "F": 5, "PL": 6, "PH": 7}
@@ -8,8 +8,8 @@ register_indexes = {"X": 0, "Y": 1, "AL": 2, "AH": 3, "A": 4, "F": 5, "PL": 6, "
 b = lambda *s: bytes(s)
 
 
-def op_to_bytes(things: list) -> bytes:
-    match (*things,):
+def op_to_bytes(instruction: list) -> Optional[bytes]:
+    match (*instruction,):
         case (Op.Const, (ArgKind.Constant, n)):
             return b(0b00_000_010, n & 0xFF)
         case (Op.Copy, (ArgKind.Register, dst), (ArgKind.Register, src)):
@@ -29,13 +29,6 @@ def op_to_bytes(things: list) -> bytes:
         case (Op.Push, (ArgKind.Register, r)):
             r = register_indexes[r]
             return b(0b00_100_000 | (r & 0b111))
-    print(things, "DID NOT MATCH")
-    return b(1)
-
-
-def binarize(labels: dict[str, int], lines: dict) -> bytearray:
-    out = bytearray(0x200)
-    for _, line in lines.items():
-        bs = op_to_bytes(line)
-        out.extend(bs)
-    return out
+        case (Op.Break,):
+            return b(0b00_000_001)
+    return None

@@ -12,7 +12,6 @@ def main(args):
     file.close()
 
     parsed = parse(content)
-    pprint(parsed)
 
     compiled = compile(parsed)
     pprint(compiled)
