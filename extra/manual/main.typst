@@ -1,0 +1,64 @@
+#set text(font: "Charter")
+#set page(paper: "a4", numbering: "1")
+
+= Reference Manual
+
+== Memory Layout
+
+Each machine has access to 8 registers and at least 0x300 bytes of RAM. Word length is 8, but 4 of the registers are part of an extended 4 word register. 
+
+The `X` and `Y` are general-purpose registers and are intended for operations to get data from. 
+
+The `ARL` and `ARH` (also known as just `AR`) are the memory access register, the value set in it will serve as the target address for jumps as well as memory writes and reads.
+
+The `F` register is the flag register, each bit is set on a custom condition.
+
+#table(
+  columns: (auto, auto, 1fr),
+  table.cell(colspan: 3, align: center)[`0bCZXXXXXXXX`],
+  [C], [Carry], [Set when an overflow occurs.],
+  [Z], [Zero], [Set if the target value is zero, usually is about the register being written to.],
+  [X], [Reserved], [Not used for anything.],
+)
+
+== Instruction Codec
+
+Every instruction as a binary number can be represented as 0bGGXXXYYY, where G are the group bits and Y are the target register. Depending on the instruction, the X is also either an identifier for a specific instruction or a register.
+
+#table(
+  columns: (auto, auto, auto, auto, auto, 1fr),
+  table.header([], [*GG*], [*X*], [*Y*], [*Name*], [*Description*]),
+  table.cell(rowspan: 13, align: horizon, rotate(-90deg, reflow: true)[*Control*]),
+  table.cell(rowspan: 13, align: horizon, [`00`]),
+  
+  table.cell(rowspan: 6, align: horizon, [`000`]),
+  [`000`], [`NOOP`], [Do nothing, flush the pipeline],
+  [`001`], [`BREAK`], [Abort execution],
+  [`010`], [`CONST`], [Put the next byte into the `ACC`],
+  [`011`], [`POP`], [Forget the top element on the stack],
+  [`100`], [`PUSHPC`], [Put the `PC` onto the stack (LE)],
+  [`101`], [`PULLPC`], [Pull 2 top elements into `PC` (LE)],
+  [`001`], table.cell(colspan: 3, [#text(fill: gray)[reserved]]),
+  
+  [`010`], [_R_], [`READ`], [`R := MEMORY[AR]`] ,
+  [`011`], [_R_], [`WRITE`], [`MEMORY[AR] := R`],
+  [`100`], [_R_], [`PUSH`], [Put _R_ atop the stack],
+  [`101`], [_R_], [`PULL`], [Pull the stack top into _R_],
+  [`110`], [_R_], [`JMPZ`], [`PC := AR` if _R_ = 0],
+  [`111`], [_R_], [`JMPZI`], [`PC := MEMORY[AR]` if _R_ = 0],
+  table.cell(rowspan: 8, align: horizon, rotate(-90deg, reflow: true)[*Arithmetic*]),
+  table.cell(rowspan: 8, align: horizon, [`01`]),
+
+  [`000`], [_R_], [`ADD`], [`A := A + R`],
+  [`001`], [_R_], [`SUB`], [`A := A - R`],
+  [`010`], [_R_], [`MUL`], [`A := A · R`],
+  [`011`], [_R_], [`DIV`], [`A := A / X`],
+  [`100`], [_R_], [`XOR`], [`A := A ⊕ X`],
+  [`101`], [_R_], [`AND`], [`A := A & X`],
+  [`110`], [_R_], [`OR`], [`A := A | X`],
+  [`111`], [_R_], [`LT`], [`A := A < X`],
+
+  table.cell(rowspan: 2, align: horizon, rotate(-90deg, reflow: true)[*Misc*]),
+  [`10`], [_R1_], [_R2_], [`SWAP`], [`R1, R2 := R2, R1`],
+  [`11`], [_R1_], [_R2_], [`COPY`], [`R1 := R2`],
+)

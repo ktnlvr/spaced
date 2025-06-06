@@ -26,6 +26,13 @@ typedef enum op_t {
   OP_CONST = 0b00000010,
 #define _OP_CONST()
 
+  // a --
+  OP_POP = 0b00000011,
+  // -- PL PH
+  OP_PUSH_PC = 0b00000100,
+  // a b --, PL <- a, PH <- b 
+  OP_PULL_PC = 0b00000101,
+
   // `0b00 010 XXX`: X <- M[AR]
   OP_READ = 0b00010000,
   // `0b00 011 XXX`: M[AR] <- X
@@ -34,7 +41,7 @@ typedef enum op_t {
   // `0b00 100 XXX`: -- X
   OP_PUSH = 0b00100000,
   // `0b00 101 XXX`: X --
-  OP_POP = 0b00101000,
+  OP_PULL = 0b00101000,
 
   // `0b00 110 XXX`: if X = 0 then PC <- AR else NOOP
   OP_JMPZ = 0b00110000,
@@ -58,6 +65,8 @@ typedef enum op_t {
   OP_AND,
   // `0b01 110 XXX`: A <- A | X
   OP_OR,
+  // `0b01 111 XXX`: A <- A < X
+  OP_LT,
 
   // `0b10 XXX YYY`: Swap data between two places `X, Y <- Y, X`
   OP_SWAP = 0b10000000,
