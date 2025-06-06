@@ -1,10 +1,6 @@
 -- Computes the Fibonacci numbers mod 256
 
 .start:
-    _const 2
-    _copy rAH rA
-    _const 9
-    _copy rAL rA 
     _const 1
     _copy rX rA
 

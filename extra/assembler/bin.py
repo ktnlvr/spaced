@@ -12,6 +12,8 @@ def op_to_bytes(instruction: list) -> Optional[bytes]:
     match (*instruction,):
         case (Op.Const, (ArgKind.Constant, n)):
             return b(0b00_000_010, n & 0xFF)
+        case (Op.Const,):
+            return b(0b00_000_010)
         case (Op.Copy, (ArgKind.Register, dst), (ArgKind.Register, src)):
             r1 = register_indexes[dst]
             r2 = register_indexes[src]

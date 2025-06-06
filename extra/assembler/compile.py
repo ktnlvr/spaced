@@ -2,8 +2,23 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import Tuple
 
-from parser import Line, Op
+from parser import Line, Op, parse
 from bin import op_to_bytes
+from utils import hi_lo
+
+
+def name_jump(c: 'Compiler'):
+    hi, lo = hi_lo(c.offset)
+    c.concat_inline("_push rA", "_const")
+    c.concat_byte(hi)
+    c.concat_inline("_push rA", "_const")
+    c.concat_byte(lo)
+    c.concat_inline("_pullpc")
+
+
+builtin_names = {
+    "jmp": name_jump
+}
 
 
 class DiagnosticKind(StrEnum):
@@ -17,10 +32,24 @@ class Compiler:
         self.bytes = bytearray(0x200)
         self.diagnostics = []
 
-        self.name_resolution_table = {}
+        self.name_resolution_table = builtin_names
         self.label_offsets = {}
 
         self.default_label_location = 0x200
+
+    def concat_inline(self, *inline):
+        for snippet in inline:
+            self.concat_parsed_lines(parse(snippet))
+
+    def concat_parsed_lines(self, lines: list[tuple]):
+        for line in lines:
+            match line:
+                case (Line.Instruction, *instruction):
+                    self.concat_instruction(instruction)
+                case (Line.Name, name, *args):
+                    self.try_concat_name(name, args)
+                case (Line.Label, label):
+                    self.insert_label(label)
 
     def concat_instruction(self, *instructions):
         for instruction in instructions:
@@ -30,11 +59,16 @@ class Compiler:
                 continue
             self.bytes.extend(bs)
 
+    def concat_byte(self, byte: int):
+        self.bytes.append(byte & 0xFF)
+
     def try_concat_name(self, name, args):
         if name not in self.name_resolution_table:
             self.warn(f"Could not find name `{name}`, inserting `_break`")
             self.concat_instruction((Op.Break,))
             return
+        handler = self.name_resolution_table[name]
+        handler(self)
 
     @property
     def offset(self) -> int:
@@ -76,14 +110,7 @@ def group_labels(lines: list[Line]) -> (dict[str, list], list[Tuple[str, list[Li
 def compile(lines: list[Line], **kwargs):
     c = Compiler()
 
-    for line in lines:
-        match line:
-            case (Line.Instruction, *instruction):
-                c.concat_instruction(instruction)
-            case (Line.Name, name, *args):
-                c.try_concat_name(name, args)
-            case (Line.Label, label):
-                c.insert_label(label)
+    c.concat_parsed_lines(lines)
     
     for _, line in c.diagnostics:
         print(line)
