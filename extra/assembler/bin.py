@@ -31,6 +31,8 @@ def op_to_bytes(instruction: list) -> Optional[bytes]:
         case (Op.Push, (ArgKind.Register, r)):
             r = register_indexes[r]
             return b(0b00_100_000 | (r & 0b111))
+        case (Op.PullPc,):
+            return b(0b00_000_101)
         case (Op.Break,):
             return b(0b00_000_001)
     return None

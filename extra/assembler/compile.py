@@ -10,9 +10,9 @@ from utils import hi_lo
 def name_jump(c: 'Compiler'):
     hi, lo = hi_lo(c.offset)
     c.concat_inline("_push rA", "_const")
-    c.concat_byte(hi)
+    c.concat_raw(hi)
     c.concat_inline("_push rA", "_const")
-    c.concat_byte(lo)
+    c.concat_raw(lo)
     c.concat_inline("_pullpc")
 
 
@@ -34,6 +34,9 @@ class Compiler:
 
         self.name_resolution_table = builtin_names
         self.label_offsets = {}
+        self.unresolved_label_offsets = {}
+        self.unresolved_label_offsets_hi = {}
+        self.unresolved_label_offsets_lo = {}
 
         self.default_label_location = 0x200
 
@@ -59,8 +62,9 @@ class Compiler:
                 continue
             self.bytes.extend(bs)
 
-    def concat_byte(self, byte: int):
-        self.bytes.append(byte & 0xFF)
+    def concat_raw(self, *bs: int):
+        for byte in bs:
+            self.bytes.append(byte & 0xFF)
 
     def try_concat_name(self, name, args):
         if name not in self.name_resolution_table:
@@ -70,6 +74,11 @@ class Compiler:
         handler = self.name_resolution_table[name]
         handler(self)
 
+    def concat_resolved_label(self, name):
+        self.unresolved_label_offsets[self.offset] = name
+        if name in self.label_offsets:
+            self.concat_raw(0xCC, 0xCC)
+
     @property
     def offset(self) -> int:
         return len(self.bytes)
@@ -78,7 +87,18 @@ class Compiler:
         self.label_offsets[label] = self.offset
 
     def finalize(self) -> bytearray:
-        return self.bytes.copy()
+        out = self.bytes.copy()
+
+        for offset, label in self.unresolved_label_offsets.items():
+            if label_offset := self.label_offsets.get(label):
+                hi, lo = hi_lo(label_offset)
+                # TODO: verify the endianness
+                self.bytes[offset] = hi
+                self.bytes[offset + 1] = lo 
+            else:
+                self.warn(f"Label `{label}` was not resolved")
+
+        return out
 
     def warn(self, s):
         self.diagnostics.append((DiagnosticKind.Warn, s))

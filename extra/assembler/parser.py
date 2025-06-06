@@ -49,7 +49,10 @@ def parse(input: str) -> list[Line]:
 
         if line.startswith("_"):
             op, *args = line.split()
-            out.append((Line.Instruction, str_to_op(op), *list(map(str_to_arg, args))))
+            op = str_to_op(op)
+            if op is None:
+                raise Exception(f"`{line}` is not an instruction")
+            out.append((Line.Instruction, op, *list(map(str_to_arg, args))))
             continue
 
         op, *args = line.split()
@@ -87,6 +90,7 @@ class Op(StrEnum):
     JumpIfZero = "_jmpz"
     Push = "_push"
     Break = "_break"
+    PullPc = "_pullpc"
 
 
 def str_to_op(s) -> Optional[Op]:

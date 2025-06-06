@@ -1,6 +1,8 @@
 #ifndef __SPACED_H__OPS__
 #define __SPACED_H__OPS__
 
+#include "defs.h"
+
 typedef enum op_register_t {
   // General purpose register
   R_X = 0b000,
@@ -18,6 +20,17 @@ typedef enum op_register_t {
   R_PC_HI = 0b111
 } op_register_t;
 
+static const char *op_register_to_str(op_register_t r) {
+  const char *table[] = {
+      "X", "Y", "AL", "AH", "A", "F", "PL", "PH",
+  };
+
+  if (r > 7)
+    return 0;
+  else
+    return table[r];
+}
+
 typedef enum op_t {
   OP_NOOP = 0b00000000,
 #define _OP_NOOP() OP_NOOP
@@ -30,7 +43,7 @@ typedef enum op_t {
   OP_POP = 0b00000011,
   // -- PL PH
   OP_PUSH_PC = 0b00000100,
-  // a b --, PL <- a, PH <- b 
+  // a b --, PL <- a, PH <- b
   OP_PULL_PC = 0b00000101,
 
   // `0b00 010 XXX`: X <- M[AR]
@@ -45,13 +58,13 @@ typedef enum op_t {
 
   // `0b00 110 XXX`: if X = 0 then PC <- AR else NOOP
   OP_JMPZ = 0b00110000,
-#define _OP_JMPZ(R) (OP_JMPZ | ((R) & 0b111))
+#define _OP_JMPZ(R) (OP_JMPZ | ((R)&0b111))
   // `0b00 111 XXX`: if X = 0 then PC <- M[AR] else NOOP
   OP_JMPZI = 0b00111000,
 
   // `0b01 000 XXX`: A <- A + X
   OP_ADD = 0b01000000,
-#define _OP_ADD(R) (OP_ADD | ((R) & 0b111))
+#define _OP_ADD(R) (OP_ADD | ((R)&0b111))
 
   // `0b01 001 XXX`: A <- A - X
   OP_SUB,
@@ -76,5 +89,50 @@ typedef enum op_t {
   OP_COPY = 0b11000000,
 #define _OP_COPY(DST, SRC) (OP_COPY | (DST << 3) | (SRC))
 } op_t;
+
+static const char *op_to_str(op_t o) {
+  byte msbs = (o & 0b11000000) >> 6;
+  byte x = (o & 0b00111000) >>> 3;
+
+  if (msbs == 0b11)
+    return "COPY";
+  else if (msbs == 0b10)
+    return "SWAP";
+  else if (msbs == 0b00) {
+    if (x == 0b000) {
+      switch (o) {
+      case OP_NOOP:
+        return "NOOP";
+      case OP_BREAK:
+        return "BREAK";
+      case OP_CONST:
+        return "CONST";
+      case OP_POP:
+        return "POP";
+      case OP_PUSH_PC:
+        return "PUSHPC";
+      case OP_PULL_PC:
+        return "PULLPC";
+      default:
+        break;
+      };
+    }
+
+    switch (x) {
+    case 0b001:
+      return 0;
+    case 0b010:
+      return "READ";
+    case 0b011:
+      return "WRITE";
+    case 0b100:
+      return "PUSH";
+    case 0b101:
+      return "PULL";
+    case 0b110:
+      return "JMPZ";
+    }
+  }
+}
 
 #endif

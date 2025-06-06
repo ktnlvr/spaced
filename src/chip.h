@@ -145,6 +145,14 @@ static void chip_step(chip_t *self) {
       return;
     }
 
+    if (value == OP_PULL_PC) {
+      byte hi = chip_stack_pop(self);
+      byte lo = chip_stack_pop(self);
+      chip_register_write(self, R_PC_LO, lo);
+      chip_register_write(self, R_PC_HI, hi);
+      return;
+    }
+
     switch (arg1) {
     case 0b100: {
       byte value = chip_register_read(self, arg2);
