@@ -80,6 +80,10 @@ static u32 chip_memory_perform_read(chip_t *self, addressing_mode_t mode) {
     chip_pc_inc(self);
     break;
   }
+  case ADDR_MODE_ZERO_PAGE: {
+    addr = chip_pc_inc(self);
+    break;
+  }
   default:
     PANIC("Unhandled addressing mode read %d", mode);
   }
