@@ -21,7 +21,6 @@ int main(void) {
 
   while (chip.quota > 0) {
     chip_step(&chip);
-    chip.quota--;
     chip_dbg_dump(&chip);
     printf("Anticipated Instruction: %s\n", opcode_to_str(chip.memory[chip.pc]));
   }

@@ -44,7 +44,7 @@ static void chip_init(chip_t *self, byte *memory, u32 quota, u32 start_at) {
 }
 
 static byte chip_memory_read_direct(chip_t *self, u16 at) {
-  return self->memory[at % 0xFFFF];
+  return self->memory[at & 0xFFFF];
 }
 
 static void chip_memory_write_direct(chip_t *self, u16 at, byte value) {
@@ -104,13 +104,10 @@ static u16 chip_memory_perform_write(chip_t *self, addressing_mode_t mode,
     break;
   }
   case ADDR_MODE_INDIRECT_Y: {
-    u16 pre_addr = 0;
-    pre_addr |= chip_pc_inc(self);
-    pre_addr |= (u16)chip_pc_inc(self) << 8;
-    addr |= (u16)chip_memory_read_direct(self, pre_addr);
-    addr |= (u16)chip_memory_read_direct(self, (pre_addr + 1) % 0xFFFF) << 8;
+    u16 zp_addr = chip_pc_inc(self);
+    addr |= (u16)chip_memory_read_direct(self, zp_addr);
+    addr |= (u16)chip_memory_read_direct(self, (zp_addr + 1) & 0xFFFF) << 8;
     addr += self->y;
-    addr &= 0xFF;
     break;
   }
   default:
@@ -154,8 +151,8 @@ static byte chip_flags_get(chip_t *self, register_flags_t flag) {
 }
 
 static void chip_flags_set(chip_t *self, register_flags_t flag, byte value) {
-  self->sp &= ~(1 << flag);
-  self->sp |= (value & 1) << flag;
+  self->sr &= ~(1 << flag);
+  self->sr |= (value & 1) << flag;
 }
 
 static void chip_flags_update_carry(chip_t *self, byte value) {
@@ -165,9 +162,9 @@ static void chip_flags_update_carry(chip_t *self, byte value) {
 static void chip_flags_update_zero_negative(chip_t *self, byte value) {
   register_flags_mask_t mask =
       (register_flags_mask_t)(FLAG_MASK_ZERO | FLAG_MASK_NEGATIVE);
-  self->sp &= ~mask;
+  self->sr &= ~mask;
   chip_flags_set(self, FLAG_ZERO, value == 0);
-  chip_flags_set(self, FLAG_NEGATIVE, mask & 0x80);
+  chip_flags_set(self, FLAG_NEGATIVE, value & 0x80);
 }
 
 #endif

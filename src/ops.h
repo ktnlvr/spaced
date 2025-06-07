@@ -44,19 +44,23 @@ static void chip_op_inc(chip_t *self, addressing_mode_t mode) {
 }
 
 // DEcrement Y
-static void chip_op_dey(chip_t *self) { self->y = (self->y - 1) & 0xFF; }
+static void chip_op_dey(chip_t *self) {
+  self->y = (self->y - 1) & 0xFF;
+  chip_flags_update_zero_negative(self, self->y);
+}
 
 // DEcrement X
 static void chip_op_dex(chip_t *self) { self->x = (self->x - 1) & 0xFF; }
 
 // INcrement Y
 static void chip_op_iny(chip_t *self) {
-  self->y = (self->y - 1) & 0xFF;
+  self->y = (self->y + 1) & 0xFF;
+  chip_flags_update_zero_negative(self, self->y);
 }
 
 // Jump with Saved Return
 static void chip_op_jsr(chip_t *self) {
-  u16 pc = (self->pc + 2) & 0xFF;
+  u16 pc = (self->pc + 1) & 0xFFFF;
 
   chip_stack_push(self, (pc >> 8) & 0xFF);
   chip_stack_push(self, pc & 0xFF);
@@ -71,16 +75,13 @@ static void chip_op_pla(chip_t *self) {
   self->ac = value;
 }
 
-static void chip_op_pha(chip_t *self) {
-  chip_stack_push(self, self->ac);
-}
+static void chip_op_pha(chip_t *self) { chip_stack_push(self, self->ac); }
 
 static void chip_op_cpy(chip_t *self, addressing_mode_t mode) {
   byte value = chip_memory_read_word(self, mode);
   byte result = self->y - value;
 
-  // FIXME: weird cast?
-  chip_flags_update_zero_negative(self, value);
+  chip_flags_update_zero_negative(self, result);
   chip_flags_update_carry(self, self->y >= value);
 }
 
@@ -89,6 +90,7 @@ static void chip_op_rts(chip_t *self) { PANIC_("DONE"); }
 static void chip_op_lda(chip_t *self, addressing_mode_t mode) {
   byte value = chip_memory_read_word(self, mode);
   self->ac = value;
+  chip_flags_update_zero_negative(self, value);
 }
 
 static void chip_op_jmp(chip_t *self, addressing_mode_t mode) {
