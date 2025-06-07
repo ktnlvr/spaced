@@ -63,6 +63,18 @@ static u32 chip_memory_perform_read(chip_t *self, addressing_mode_t mode) {
     addr |= (u16)chip_pc_inc(self) << 8;
     break;
   }
+  case ADDR_MODE_ABSOLUTE_X: {
+    addr |= chip_pc_inc(self);
+    addr |= (u16)chip_pc_inc(self) << 8;
+    addr = (addr + self->x) & 0xFFFF;
+    break;
+  }
+  case ADDR_MODE_ABSOLUTE_Y: {
+    addr |= chip_pc_inc(self);
+    addr |= (u16)chip_pc_inc(self) << 8;
+    addr = (addr + self->y) & 0xFFFF;
+    break;
+  }
   case ADDR_MODE_IMMEDIATE: {
     addr = self->pc;
     chip_pc_inc(self);
@@ -134,12 +146,20 @@ static u16 chip_memory_read_dword(chip_t *self, addressing_mode_t mode) {
 }
 
 static void chip_stack_push(chip_t *self, byte value) {
+  if (self->sp == 0x00) {
+    PANIC_("Stack overflow");
+  }
+
   chip_memory_write_direct(self, CHIP_STACK_BOTTOM_ADDR + self->sp, value);
   self->sp--;
   self->sp &= 0xFF;
 }
 
 static byte chip_stack_pull(chip_t *self) {
+  if (self->sp == 0xFF) {
+    PANIC_("Stack underflow");
+  }
+
   self->sp++;
   self->sp &= 0xFF;
   byte value = chip_memory_read_direct(self, CHIP_STACK_BOTTOM_ADDR + self->sp);

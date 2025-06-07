@@ -65,9 +65,7 @@ static void chip_op_jsr(chip_t *self) {
   chip_stack_push(self, (pc >> 8) & 0xFF);
   chip_stack_push(self, pc & 0xFF);
 
-  u32 read = chip_memory_perform_read(self, ADDR_MODE_ABSOLUTE);
-  u16 addr = get_memory_addr(read);
-  self->pc = addr;
+  self->pc = chip_memory_read_addr(self, ADDR_MODE_ABSOLUTE);
 }
 
 static void chip_op_pla(chip_t *self) {
@@ -85,7 +83,12 @@ static void chip_op_cpy(chip_t *self, addressing_mode_t mode) {
   chip_flags_update_carry(self, self->y >= value);
 }
 
-static void chip_op_rts(chip_t *self) { PANIC_("DONE"); }
+static void chip_op_rts(chip_t *self) {
+  u16 addr = 0;
+  addr |= (u16)chip_stack_pull(self);
+  addr |= (u16)chip_stack_pull(self) << 8;
+  self->pc = (addr + 1) & 0xFFFF;
+}
 
 static void chip_op_lda(chip_t *self, addressing_mode_t mode) {
   byte value = chip_memory_read_word(self, mode);
