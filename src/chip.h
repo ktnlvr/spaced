@@ -78,7 +78,8 @@ static u32 chip_memory_perform_read(chip_t *self, addressing_mode_t mode) {
   return ((u32)addr << 16) | value;
 }
 
-static u16 chip_memory_perform_write(chip_t *self, addressing_mode_t mode, byte value) {
+static u16 chip_memory_perform_write(chip_t *self, addressing_mode_t mode,
+                                     byte value) {
   u16 addr = 0;
 
   switch (mode) {

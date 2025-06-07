@@ -3,6 +3,7 @@
 
 #include "chip.h"
 #include "defs.h"
+#include "generated/lookup.h"
 #include "ops.h"
 
 #define MEMORY_SIZE 0x10000
@@ -22,6 +23,7 @@ int main(void) {
     chip_step(&chip);
     chip.quota--;
     chip_dbg_dump(&chip);
+    printf("Anticipated Instruction: %s\n", opcode_to_str(chip.memory[chip.pc]));
   }
 
   return 0;

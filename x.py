@@ -73,7 +73,9 @@ print(", ".join(unique_instructions.difference(export_only)))
 
 functions = []
 
-cases = []
+decode_cases = []
+
+str_cases = []
 
 func_name = lambda op: f"chip_op_{op.lower()}"
 
@@ -85,14 +87,20 @@ for op, modes in instruction_modes.items():
     if op in export_only:
         for mode in modes:
             n = instruction_opcodes[(op, mode)]
-            s = f"""  case (0x{n:02X}): {{
+            str_case = f"""  case (0x{n:02X}): {{
+    return "{op} {mode.lower()}";
+  }}"""
+            str_cases.append(str_case)
+
+            decode_case = f"""  case (0x{n:02X}): {{
     {func_name(op)}(self{f", ADDR_MODE_{mode}" if len(modes) > 1 else ""});
     break;
   }}"""
-            cases.append(s)
+            decode_cases.append(decode_case)
 
 functions = '\n\n'.join("static void " + f + f"(chip_t *{', addressing_mode_t' if len(modes) > 1 else ''});" for f, modes in functions)
-cases = '\n'.join(cases)
+decode_cases = '\n'.join(decode_cases)
+str_cases = '\n'.join(str_cases)
 
 instruction_lookup_template = f"""
 #ifndef __SPACED_H__INSTRUCTION_LOOKUP__
@@ -110,10 +118,17 @@ instruction_lookup_template = f"""
 
 static void chip_decode_execute(chip_t *self, byte opcode) {{
   switch (opcode) {{
-{cases}
+{decode_cases}
   default:
     PANIC("Unknown opcode 0x%02X at PC=0x%04X", opcode, self->pc - 1);
   }}
+}}
+
+static const char *opcode_to_str(byte opcode) {{
+  switch (opcode) {{
+{str_cases}
+  }}
+  return 0;
 }}
 
 #endif
