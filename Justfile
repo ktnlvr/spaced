@@ -1,13 +1,16 @@
 alias b := build
 alias g := generate
 
-generate:
-    mkdir -p ./src/generated
-    python3 ./x.py
+run: build hello-world
+    ./build/spaced
 
 build: generate
     mkdir -p ./build/
     clang -Isrc src/main.c -o ./build/spaced -std=c99 -g
+
+generate:
+    mkdir -p ./src/generated
+    python3 ./x.py
 
 hello-world:
     cc65 ./examples/c/hello-world/main.c

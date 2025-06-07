@@ -111,6 +111,8 @@ instruction_lookup_template = f"""
 static void chip_decode_execute(chip_t *self, byte opcode) {{
   switch (opcode) {{
 {cases}
+  default:
+    PANIC("Unknown opcode 0x%02X at PC=0x%04X", opcode, self->pc - 1);
   }}
 }}
 
