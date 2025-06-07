@@ -38,7 +38,7 @@ modes = {
 
 unique_modes = set()
 unique_instructions = set()
-export_only = {"LDX", "LDA", "JMP", "RTS"}
+export_only = {"LDX", "LDA", "JMP", "RTS", "STA", "STX", "JSR", "PHA", "PLA", "LDY", "BEQ", "TAY", "INY", "BNE", "INC", "DEX", "CPY", "DEY", "STY"}
 
 instruction_modes = defaultdict(list)
 instruction_opcodes = dict()
