@@ -7,16 +7,15 @@
 #include "ops.h"
 
 #define MEMORY_SIZE 0x10000
-#define PROGRAM_START 0x1000
 
 int main(void) {
   byte *memory = (byte *)malloc(MEMORY_SIZE);
 
   chip_t chip;
-  chip_init(&chip, memory, 260, PROGRAM_START);
+  chip_init(&chip, memory, 130, 0);
 
   FILE *file = fopen("./examples/c/hello-world/main.bin", "rb");
-  fread(memory + PROGRAM_START, 1, MEMORY_SIZE, file);
+  fread(memory, 1, MEMORY_SIZE, file);
   fclose(file);
 
   while (chip.quota > 0) {

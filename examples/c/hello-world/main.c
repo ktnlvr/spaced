@@ -1,4 +1,3 @@
-
 int main() {
   int out[15] = {}, tmp;
   int a = 1, b = 1, i = 0;
