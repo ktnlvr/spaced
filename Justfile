@@ -3,6 +3,7 @@ alias g := generate
 
 run: build hello-world
     ./build/spaced
+    xxd -g2 dump.bin | grep -v '0000 0000 0000 0000 0000 0000 0000 0000'
 
 build: generate
     mkdir -p ./build/

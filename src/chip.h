@@ -58,32 +58,36 @@ static u32 chip_memory_perform_read(chip_t *self, addressing_mode_t mode) {
   u16 addr = 0;
 
   switch (mode) {
-  case ADDR_MODE_ABSOLUTE: {
+  case ADDR_MODE_ABSOLUTE:
     addr |= chip_pc_inc(self);
     addr |= (u16)chip_pc_inc(self) << 8;
     break;
-  }
-  case ADDR_MODE_ABSOLUTE_X: {
+  case ADDR_MODE_ABSOLUTE_X:
     addr |= chip_pc_inc(self);
     addr |= (u16)chip_pc_inc(self) << 8;
     addr = (addr + self->x) & 0xFFFF;
     break;
-  }
-  case ADDR_MODE_ABSOLUTE_Y: {
+  case ADDR_MODE_ABSOLUTE_Y:
     addr |= chip_pc_inc(self);
     addr |= (u16)chip_pc_inc(self) << 8;
     addr = (addr + self->y) & 0xFFFF;
     break;
-  }
-  case ADDR_MODE_IMMEDIATE: {
+  case ADDR_MODE_IMMEDIATE:
     addr = self->pc;
     chip_pc_inc(self);
     break;
-  }
-  case ADDR_MODE_ZERO_PAGE: {
+  case ADDR_MODE_ZERO_PAGE:
     addr = chip_pc_inc(self);
     break;
+  case ADDR_MODE_INDIRECT_Y: {
+    u16 zp_addr = chip_pc_inc(self);
+    addr |= (u16)chip_memory_read_direct(self, zp_addr);
+    addr |= (u16)chip_memory_read_direct(self, (zp_addr + 1) & 0xFFFF) << 8;
+    addr += self->y;
+    break;
   }
+  case ADDR_MODE_ACCUMULATOR:
+    PANIC_("The ACCUMULATOR addressing read mode is handled on per-instruction basis");
   default:
     PANIC("Unhandled addressing mode read %d", mode);
   }
@@ -126,6 +130,8 @@ static u16 chip_memory_perform_write(chip_t *self, addressing_mode_t mode,
     addr += self->y;
     break;
   }
+  case ADDR_MODE_ACCUMULATOR:
+    PANIC_("The ACCUMULATOR addressing read mode is handled on per-instruction basis");
   default:
     PANIC("Unhandled addressing mode write %d", mode);
   }
@@ -176,7 +182,7 @@ static byte chip_flags_get(chip_t *self, register_flags_t flag) {
 
 static void chip_flags_set(chip_t *self, register_flags_t flag, byte value) {
   self->sr &= ~(1 << flag);
-  self->sr |= (value & 1) << flag;
+  self->sr |= !!value << flag;
 }
 
 static void chip_flags_update_carry(chip_t *self, byte value) {
@@ -189,6 +195,10 @@ static void chip_flags_update_zero_negative(chip_t *self, byte value) {
   self->sr &= ~mask;
   chip_flags_set(self, FLAG_ZERO, value == 0);
   chip_flags_set(self, FLAG_NEGATIVE, value & 0x80);
+}
+
+static void chip_flags_update_overflow(chip_t* self, byte value) {
+  chip_flags_set(self, FLAG_OVERFLOW, value);
 }
 
 #endif

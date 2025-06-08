@@ -16,6 +16,7 @@ typedef enum addressing_mode_t {
   ADDR_MODE_INDIRECT_Y,
   ADDR_MODE_ZERO_PAGE_X,
   ADDR_MODE_ZERO_PAGE_Y,
+  ADDR_MODE_ACCUMULATOR,
 } addressing_mode_t;
 
 #endif

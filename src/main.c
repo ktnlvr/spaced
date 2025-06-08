@@ -13,7 +13,7 @@ int main(void) {
   byte *memory = (byte *)malloc(MEMORY_SIZE);
 
   chip_t chip;
-  chip_init(&chip, memory, 44, PROGRAM_START);
+  chip_init(&chip, memory, 122, PROGRAM_START);
 
   FILE *file = fopen("./examples/c/hello-world/main.bin", "rb");
   fread(memory + PROGRAM_START, 1, MEMORY_SIZE, file);

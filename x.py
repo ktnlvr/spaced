@@ -22,7 +22,7 @@ class AddressingMode(StrEnum):
 modes = {
     "zpg": AddressingMode.ZeroPage,
     "zpg,X": AddressingMode.ZeroPageX,
-    "zpg,Y": AddressingMode.ZeroPageY, 
+    "zpg,Y": AddressingMode.ZeroPageY,
     "abs": AddressingMode.Absolute,
     "abs,X": AddressingMode.AbsoluteX,
     "abs,Y": AddressingMode.AbsoluteY,
@@ -32,18 +32,53 @@ modes = {
     "#": AddressingMode.Immediate,
     "A": AddressingMode.Accumulator,
     "rel": AddressingMode.Relative,
-    "impl": AddressingMode.Implied
+    "impl": AddressingMode.Implied,
 }
 
 
 unique_modes = set()
 unique_instructions = set()
-export_only = {"LDX", "LDA", "JMP", "RTS", "STA", "STX", "JSR", "PHA", "PLA", "LDY", "BEQ", "TAY", "INY", "BNE", "INC", "DEX", "CPY", "DEY", "STY"}
+export_only = {
+    "LDX",
+    "LDA",
+    "JMP",
+    "RTS",
+    "STA",
+    "STX",
+    "JSR",
+    "PHA",
+    "PLA",
+    "LDY",
+    "BEQ",
+    "TAY",
+    "INY",
+    "BNE",
+    "INC",
+    "DEX",
+    "CPY",
+    "DEY",
+    "STY",
+    "SEC",
+    "SBC",
+    "BCS",
+    "DEC",
+    "TXA",
+    "TAX",
+    "CMP",
+    "BVC",
+    "EOR",
+    "ASL",
+    "ROL",
+    "CLC",
+    "TYA",
+    "ADC",
+    "BCC",
+}
 
 instruction_modes = defaultdict(list)
 instruction_opcodes = dict()
 
-with open('external/instructions.csv', 'r') as f:
+with open("external/instructions.csv", "r") as f:
     lines = list(csv.reader(f))
 
     for i in range(16):
@@ -98,9 +133,12 @@ for op, modes in instruction_modes.items():
   }}"""
             decode_cases.append(decode_case)
 
-functions = '\n\n'.join("static void " + f + f"(chip_t *{', addressing_mode_t' if len(modes) > 1 else ''});" for f, modes in functions)
-decode_cases = '\n'.join(decode_cases)
-str_cases = '\n'.join(str_cases)
+functions = "\n\n".join(
+    "static void " + f + f"(chip_t *{', addressing_mode_t' if len(modes) > 1 else ''});"
+    for f, modes in functions
+)
+decode_cases = "\n".join(decode_cases)
+str_cases = "\n".join(str_cases)
 
 instruction_lookup_template = f"""
 #ifndef __SPACED_H__INSTRUCTION_LOOKUP__
@@ -134,5 +172,5 @@ static const char *opcode_to_str(byte opcode) {{
 #endif
 """.strip()
 
-with open('./src/generated/lookup.h', 'w+') as f:
+with open("./src/generated/lookup.h", "w+") as f:
     f.write(instruction_lookup_template)
