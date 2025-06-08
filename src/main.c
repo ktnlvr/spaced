@@ -12,11 +12,18 @@ int main(void) {
   byte *memory = (byte *)malloc(MEMORY_SIZE);
 
   chip_t chip;
-  chip_init(&chip, memory, 130, 0);
+  chip_init(&chip, memory, 100);
 
+  byte* rom = (byte*)malloc(MEMORY_SIZE);
   FILE *file = fopen("./examples/c/hello-world/main.bin", "rb");
-  fread(memory, 1, MEMORY_SIZE, file);
+  fseek(file, 0, SEEK_END);
+  u16 filesize = ftell(file);
+  fseek(file, 0, SEEK_SET);
+  printf("ROM Size: %d\n", filesize);
+  fread(rom, 1, filesize, file);
   fclose(file);
+
+  chip_load_rom(&chip, rom, filesize, 0xF800);
 
   while (chip.quota > 0) {
     chip.quota--;

@@ -35,12 +35,18 @@ static void chip_dbg_dump(chip_t *self) {
          self->pc, self->ac, self->x, self->y, self->sr, self->sp);
 }
 
-static void chip_init(chip_t *self, byte *memory, u32 quota, u32 start_at) {
+static void chip_init(chip_t *self, byte *memory, u32 quota) {
   memset(self, 0, sizeof(chip_t));
   self->memory = memory;
   self->quota = quota;
-  self->pc = start_at;
+  self->pc = 0;
   self->sp = 0xFF;
+}
+
+static void chip_load_rom(chip_t* self, byte* rom, size_t len, u16 rom_start) {
+  memcpy(self->memory + rom_start, rom, len);
+  self->pc = self->memory[0xFFFC] | (self->memory[0xFFFD] << 8);
+  printf("PC=%04X\n", self->pc);
 }
 
 static byte chip_memory_read_direct(chip_t *self, u16 at) {
