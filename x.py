@@ -73,6 +73,8 @@ export_only = {
     "TYA",
     "ADC",
     "BCC",
+    "ORA",
+    "BPL",
 }
 
 instruction_modes = defaultdict(list)

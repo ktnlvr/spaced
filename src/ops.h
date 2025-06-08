@@ -9,7 +9,13 @@
 
 static void chip_op_beq(chip_t *self) {
   i8 offset = chip_memory_read_word(self, ADDR_MODE_RELATIVE);
-  if (chip_flags_get(self, FLAG_ZERO))
+  if (chip_flags_get(self, FLAG_ZERO) == 1)
+    self->pc += offset;
+}
+
+static void chip_op_bpl(chip_t *self) {
+  i8 offset = chip_memory_read_word(self, ADDR_MODE_RELATIVE);
+  if (chip_flags_get(self, FLAG_NEGATIVE) == 0)
     self->pc += offset;
 }
 
@@ -217,6 +223,12 @@ static void chip_op_bvc(chip_t *self) {
 static void chip_op_eor(chip_t *self, addressing_mode_t mode) {
   byte value = chip_memory_read_word(self, mode);
   self->ac = self->ac ^ value;
+  chip_flags_update_zero_negative(self, self->ac);
+}
+
+static void chip_op_ora(chip_t *self, addressing_mode_t mode) {
+  byte value = chip_memory_read_word(self, mode);
+  self->ac = self->ac | value;
   chip_flags_update_zero_negative(self, self->ac);
 }
 
