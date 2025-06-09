@@ -1,7 +1,7 @@
 #ifndef __SPACED_H__MEMORY__
 #define __SPACED_H__MEMORY__
 
-#include "defs.h"
+#include "../defs.h"
 
 typedef enum addressing_mode_t {
   ADDR_MODE_ABSOLUTE,

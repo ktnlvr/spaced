@@ -154,7 +154,7 @@ instruction_lookup_template = f"""
 // Hopefully the massive switchcase gets optimized
 // into a nice manageable table
 
-#include "../defs.h"
+#include "../../defs.h"
 #include "../addressing.h"
 #include "../chip.h"
 
@@ -178,5 +178,5 @@ static const char *opcode_to_str(byte opcode) {{
 #endif
 """.strip()
 
-with open("./src/generated/lookup.h", "w+") as f:
+with open("./src/6502/generated/lookup.h", "w+") as f:
     f.write(instruction_lookup_template)

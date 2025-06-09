@@ -3,8 +3,8 @@
 
 #include "addressing.h"
 #include "chip.h"
-#include "defs.h"
-#include "generated/lookup.h"
+#include "../defs.h"
+#include "./generated/lookup.h"
 #include "memory.h"
 
 static void chip_op_beq(chip_t *self) {

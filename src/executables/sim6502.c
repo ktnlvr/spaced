@@ -1,10 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "chip.h"
-#include "defs.h"
-#include "generated/lookup.h"
-#include "ops.h"
+#include "../6502/chip.h"
+#include "../6502/ops.h"
 
 #define MEMORY_SIZE 0x10000
 

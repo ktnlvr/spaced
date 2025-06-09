@@ -1,21 +1,22 @@
-alias b := build
+alias b := build-sim-6502
 alias g := generate
+alias sim := run-6502-example
 
 default:
     just --list
 
-run example: build
+run-6502-example example: build-sim-6502
     ./build/spaced ./build/{{example}}/main.bin
     xxd -g2 dump.bin | grep -v '0000 0000 0000 0000 0000 0000 0000 0000'
 
 _build-warmup:
     mkdir -p ./build/
 
-build: generate _build-warmup
-    clang -Isrc src/main.c -o ./build/spaced -std=c99 -g
+build-sim-6502: generate _build-warmup
+    clang -Isrc src/executables/sim6502.c -o ./build/spaced -std=c99 -g
 
 generate:
-    mkdir -p ./src/generated
+    mkdir -p ./src/6502/generated
     python3 ./x.py
 
 build-example-asm name: _build-warmup build-stdlib

@@ -4,7 +4,7 @@
 #include <string.h>
 
 #include "addressing.h"
-#include "defs.h"
+#include "../defs.h"
 
 #define CHIP_STACK_BOTTOM_ADDR 0x0100
 
