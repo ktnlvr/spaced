@@ -1,10 +1,10 @@
 #ifndef __SPACED_H__OPS__
 #define __SPACED_H__OPS__
 
-#include "addressing.h"
-#include "chip.h"
 #include "../defs.h"
 #include "./generated/lookup.h"
+#include "addressing.h"
+#include "chip.h"
 #include "memory.h"
 
 static void chip_op_beq(chip_t *self) {
@@ -100,6 +100,14 @@ static void chip_op_cpy(chip_t *self, addressing_mode_t mode) {
   chip_flags_update_carry(self, self->y >= value);
 }
 
+static void chip_op_cpx(chip_t *self, addressing_mode_t mode) {
+  byte value = chip_memory_read_word(self, mode);
+  byte result = self->x - value;
+
+  chip_flags_update_zero_negative(self, result);
+  chip_flags_update_carry(self, self->x >= value);
+}
+
 static void chip_op_rts(chip_t *self) {
   u16 addr = 0;
   addr |= (u16)chip_stack_pull(self);
@@ -147,9 +155,7 @@ static void chip_op_txa(chip_t *self) {
   chip_flags_update_zero_negative(self, self->x);
 }
 
-static void chip_op_txs(chip_t *self) {
-  self->sp = self->x;
-}
+static void chip_op_txs(chip_t *self) { self->sp = self->x; }
 
 static void chip_op_tax(chip_t *self) {
   self->x = self->ac;
@@ -164,12 +170,11 @@ static void chip_op_sbc(chip_t *self, addressing_mode_t mode) {
 
   u16 result = (u16)self->ac - value - (1 - carry);
 
-  chip_flags_update_carry(self, !(result & 0x100));
+  chip_flags_update_carry(self, self->ac >= (value + (1 - carry)));
   chip_flags_update_zero_negative(self, result);
 
   // TODO: sanity check this, looks too complicated
-  byte overflow =
-      (self->ac ^ (byte)result) & ((~(self->ac ^ value) & 0x80) != 0);
+  byte overflow = ((self->ac ^ result) & (self->ac ^ value)) & 0x80;
   chip_flags_update_overflow(self, overflow);
 
   self->ac = result;
@@ -230,9 +235,21 @@ static void chip_op_bvc(chip_t *self) {
     self->pc += offset;
 }
 
+static void chip_op_bvs(chip_t *self) {
+  i8 offset = chip_memory_read_word(self, ADDR_MODE_RELATIVE);
+  if (chip_flags_get(self, FLAG_OVERFLOW) == 1)
+    self->pc += offset;
+}
+
 static void chip_op_eor(chip_t *self, addressing_mode_t mode) {
   byte value = chip_memory_read_word(self, mode);
   self->ac = self->ac ^ value;
+  chip_flags_update_zero_negative(self, self->ac);
+}
+
+static void chip_op_and(chip_t *self, addressing_mode_t mode) {
+  byte value = chip_memory_read_word(self, mode);
+  self->ac = self->ac & value;
   chip_flags_update_zero_negative(self, self->ac);
 }
 
@@ -256,6 +273,52 @@ static void chip_op_asl(chip_t *self, addressing_mode_t mode) {
 
   byte carry = (value >> 7) & 1;
   byte result = (value << 1) & 0xFF;
+
+  chip_flags_update_carry(self, carry);
+  chip_flags_update_zero_negative(self, result);
+
+  if (mode == ADDR_MODE_ACCUMULATOR)
+    self->ac = result;
+  else
+    chip_memory_write_direct(self, addr, result);
+}
+
+static void chip_op_ror(chip_t *self, addressing_mode_t mode) {
+  byte value;
+  u16 addr;
+  if (mode == ADDR_MODE_ACCUMULATOR)
+    value = self->ac;
+  else {
+    byte read = chip_memory_perform_read(self, mode);
+    value = get_memory_word(read);
+    addr = get_memory_addr(read);
+  }
+
+  byte carry = value & 1;
+  byte result = (carry << 7) | (value >> 1);
+
+  chip_flags_update_carry(self, carry);
+  chip_flags_update_zero_negative(self, result);
+
+  if (mode == ADDR_MODE_ACCUMULATOR)
+    self->ac = result;
+  else
+    chip_memory_write_direct(self, addr, result);
+}
+
+static void chip_op_lsr(chip_t *self, addressing_mode_t mode) {
+  byte value;
+  u16 addr;
+  if (mode == ADDR_MODE_ACCUMULATOR)
+    value = self->ac;
+  else {
+    byte read = chip_memory_perform_read(self, mode);
+    value = get_memory_word(read);
+    addr = get_memory_addr(read);
+  }
+
+  byte carry = value & 1;
+  byte result = value >> 1;
 
   chip_flags_update_carry(self, carry);
   chip_flags_update_zero_negative(self, result);
@@ -295,9 +358,7 @@ static void chip_op_clc(chip_t *self) { chip_flags_set(self, FLAG_CARRY, 0); }
 static void chip_op_cld(chip_t *self) { chip_flags_set(self, FLAG_DECIMAL, 0); }
 
 // BReaK
-static void chip_op_brk(chip_t* self) {
-  self->halted = true;
-}
+static void chip_op_brk(chip_t *self) { self->halted = true; }
 
 static void chip_step(chip_t *self) {
   if (self->halted)
