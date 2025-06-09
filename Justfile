@@ -44,4 +44,4 @@ build-stdlib: _build-warmup
 xxd-ignore-zeros filename:
     @echo "Printing the dump of {{filename}}"
     @echo "Careful! Zero lines not printed." 
-    xxd -g2 dump.bin | rg -v '0000 0000 0000 0000 0000 0000 0000 0000'
+    xxd -g2 {{filename}} | rg -v '0000 0000 0000 0000 0000 0000 0000 0000'
