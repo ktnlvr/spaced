@@ -1,23 +1,47 @@
 alias b := build
 alias g := generate
 
-run: build hello-world
-    ./build/spaced
+default:
+    just --list
+
+run example: build
+    ./build/spaced {{example}}
     xxd -g2 dump.bin | grep -v '0000 0000 0000 0000 0000 0000 0000 0000'
 
-build: generate
+_build-warmup:
     mkdir -p ./build/
+
+build: generate _build-warmup
     clang -Isrc src/main.c -o ./build/spaced -std=c99 -g
 
 generate:
     mkdir -p ./src/generated
     python3 ./x.py
 
-hello-world:
-    cc65 -t none --cpu 6502 examples/c/hello-world/main.c
-    ca65 --cpu 6502 examples/c/hello-world/main.s
-    ca65 --cpu 6502 target/vectors.s
-    ca65 --cpu 6502 target/interrupt.s
-    ld65 -C target/memory.cfg -m examples/c/hello-world/main.map examples/c/hello-world/main.o -o examples/c/hello-world/main.bin target/stdlib.lib target/vectors.o target/interrupt.o
-    da65 examples/c/hello-world/main.bin > examples/c/hello-world/out.s -S 0x01000 -v
-    xxd -p ./examples/c/hello-world/main.bin
+build-example-asm name: _build-warmup build-stdlib
+    mkdir -p build/{{name}}
+    ca65 --cpu 6502 examples/asm/{{name}}.s -o build/{{name}}/main.o
+    ld65 -C target/memory.cfg -m build/{{name}}/main.map build/{{name}}/main.o -o build/{{name}}/main.bin target/stdlib.lib build/stdlib/vectors.o build/stdlib/interrupt.o
+    da65 build/{{name}}/main.bin > build/{{name}}/disassembled.s
+    just xxd-ignore-zeros build/{{name}}/main.bin
+
+build-example-c name: _build-warmup build-stdlib
+    mkdir -p ./build/{{name}}
+    cc65 -t none --cpu 6502 examples/c/{{name}}.c -o build/{{name}}/main.s
+    ca65 --cpu 6502 build/{{name}}/main.s
+    ld65 -C target/memory.cfg -m build/{{name}}/main.map build/{{name}}/main.o -o build/{{name}}/main.bin target/stdlib.lib build/stdlib/vectors.o build/stdlib/interrupt.o
+    da65 build/{{name}}/main.bin > build/{{name}}/disassembled.s
+    just xxd-ignore-zeros build/{{name}}/main.bin
+    @echo "Done building the example {{name}}!"
+
+build-stdlib: _build-warmup
+    mkdir -p build/stdlib
+    ca65 --cpu 6502 target/crt0.s -o build/stdlib/crt0.o
+    ca65 --cpu 6502 target/vectors.s -o build/stdlib/vectors.o
+    ca65 --cpu 6502 target/interrupt.s -o build/stdlib/interrupt.o
+    ar65 a build/stdlib/stdlib.lib build/stdlib/crt0.o
+
+xxd-ignore-zeros filename:
+    @echo "Printing the dump of {{filename}}"
+    @echo "Careful! Zero lines not printed." 
+    xxd -g2 dump.bin | rg -v '0000 0000 0000 0000 0000 0000 0000 0000'

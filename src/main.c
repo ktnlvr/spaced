@@ -8,7 +8,7 @@
 
 #define MEMORY_SIZE 0x10000
 
-int main(void) {
+int main(int argc, const char* argv[]) {
   byte *memory = (byte *)malloc(MEMORY_SIZE);
   memset(memory, 0, MEMORY_SIZE);
 
@@ -16,7 +16,7 @@ int main(void) {
   chip_init(&chip, memory, 0);
 
   byte* rom = (byte*)malloc(MEMORY_SIZE);
-  FILE *file = fopen("./examples/c/hello-world/main.bin", "rb");
+  FILE *file = fopen(argv[1], "rb");
   fseek(file, 0, SEEK_END);
   u16 filesize = ftell(file);
   fseek(file, 0, SEEK_SET);
