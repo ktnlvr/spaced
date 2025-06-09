@@ -5,7 +5,7 @@ default:
     just --list
 
 run example: build
-    ./build/spaced {{example}}
+    ./build/spaced ./build/{{example}}/main.bin
     xxd -g2 dump.bin | grep -v '0000 0000 0000 0000 0000 0000 0000 0000'
 
 _build-warmup:
