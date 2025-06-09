@@ -10,8 +10,9 @@
 
 int main(void) {
   byte *memory = (byte *)malloc(MEMORY_SIZE);
+  memset(memory, 0, MEMORY_SIZE);
 
-  chip_t chip;
+  chip_t chip = {};
   chip_init(&chip, memory, 0);
 
   byte* rom = (byte*)malloc(MEMORY_SIZE);
@@ -26,10 +27,9 @@ int main(void) {
   chip_load_rom(&chip, rom, filesize, 0xF800);
 
   while (!chip.halted) {
-    chip_step(&chip);
     chip_dbg_dump(&chip);
-    printf("Anticipated Instruction: %s\n",
-           opcode_to_str(chip.memory[chip.pc]));
+    printf("Next: %s\n", opcode_to_str(chip.memory[chip.pc]));
+    chip_step(&chip);
   }
 
   file = fopen("./dump.bin", "wb");
