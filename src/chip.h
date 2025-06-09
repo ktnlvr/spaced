@@ -39,11 +39,14 @@ static void chip_dbg_dump(chip_t *self) {
 }
 
 static void chip_init(chip_t *self, byte *memory, u32 quota) {
-  memset(self, 0, sizeof(chip_t));
   self->memory = memory;
   self->quota = quota;
-  self->pc = 0;
+  self->ac = 0;
   self->sp = 0xFF;
+  self->pc = 0;
+  self->x = 0;
+  self->y = 0;
+  self->sr = 0;
   self->halted = false;
 }
 
@@ -58,7 +61,7 @@ static byte chip_memory_read_direct(chip_t *self, u16 at) {
 }
 
 static void chip_memory_write_direct(chip_t *self, u16 at, byte value) {
-  self->memory[at] = value;
+  self->memory[at & 0xFFFF] = value;
 }
 
 static byte chip_pc_inc(chip_t *self) { return self->memory[self->pc++]; }
@@ -136,7 +139,7 @@ static u16 chip_memory_perform_write(chip_t *self, addressing_mode_t mode,
   case ADDR_MODE_INDIRECT_Y: {
     u16 zp_addr = chip_pc_inc(self);
     addr |= (u16)chip_memory_read_direct(self, zp_addr);
-    addr |= (u16)chip_memory_read_direct(self, (zp_addr + 1) & 0xFFFF) << 8;
+    addr |= (u16)chip_memory_read_direct(self, (zp_addr + 1) & 0xFF) << 8;
     addr += self->y;
     break;
   }
