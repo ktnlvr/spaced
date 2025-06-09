@@ -121,6 +121,12 @@ static u16 chip_memory_perform_write(chip_t *self, addressing_mode_t mode,
     addr |= (u16)chip_pc_inc(self) << 8;
     break;
   }
+  case ADDR_MODE_ABSOLUTE_X: {
+    addr |= chip_pc_inc(self);
+    addr |= (u16)chip_pc_inc(self) << 8;
+    addr = (addr + self->x) & 0xFFFF;
+    break;
+  }
   case ADDR_MODE_ZERO_PAGE: {
     addr = chip_pc_inc(self);
     break;
