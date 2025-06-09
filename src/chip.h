@@ -146,7 +146,8 @@ static u16 chip_memory_perform_write(chip_t *self, addressing_mode_t mode,
     PANIC("Unhandled addressing mode write %d", mode);
   }
 
-  return self->memory[addr];
+  self->memory[addr] = value;
+  return addr;
 }
 
 static u16 get_memory_addr(u32 read) { return (read >> 16) & 0xFFFF; }
