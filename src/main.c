@@ -12,7 +12,7 @@ int main(void) {
   byte *memory = (byte *)malloc(MEMORY_SIZE);
 
   chip_t chip;
-  chip_init(&chip, memory, 100);
+  chip_init(&chip, memory, 1000000);
 
   byte* rom = (byte*)malloc(MEMORY_SIZE);
   FILE *file = fopen("./examples/c/hello-world/main.bin", "rb");

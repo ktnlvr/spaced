@@ -75,6 +75,9 @@ export_only = {
     "BCC",
     "ORA",
     "BPL",
+    "TXS",
+    "CLD",
+    "INX",
 }
 
 instruction_modes = defaultdict(list)

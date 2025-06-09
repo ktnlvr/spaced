@@ -68,6 +68,12 @@ static void chip_op_iny(chip_t *self) {
   chip_flags_update_zero_negative(self, self->y);
 }
 
+// INcrement X
+static void chip_op_inx(chip_t *self) {
+  self->x = (self->x + 1) & 0xFF;
+  chip_flags_update_zero_negative(self, self->x);
+}
+
 // Jump with Saved Return
 static void chip_op_jsr(chip_t *self) {
   u16 pc = (self->pc + 1) & 0xFFFF;
@@ -139,6 +145,10 @@ static void chip_op_tya(chip_t *self) {
 static void chip_op_txa(chip_t *self) {
   self->ac = self->x;
   chip_flags_update_zero_negative(self, self->x);
+}
+
+static void chip_op_txs(chip_t *self) {
+  self->sp = self->x;
 }
 
 static void chip_op_tax(chip_t *self) {
@@ -280,6 +290,9 @@ static void chip_op_rol(chip_t *self, addressing_mode_t mode) {
 }
 
 static void chip_op_clc(chip_t *self) { chip_flags_set(self, FLAG_CARRY, 0); }
+
+// CLear Decimal
+static void chip_op_cld(chip_t *self) { chip_flags_set(self, FLAG_DECIMAL, 0); }
 
 static void chip_step(chip_t *self) {
   byte opcode = chip_pc_inc(self);

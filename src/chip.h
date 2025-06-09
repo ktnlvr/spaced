@@ -19,6 +19,7 @@ typedef struct chip_t {
 typedef enum register_flags_t {
   FLAG_CARRY = 0,
   FLAG_ZERO = 1,
+  FLAG_DECIMAL = 3,
   FLAG_OVERFLOW = 6,
   FLAG_NEGATIVE = 7,
 } register_flags_t;
