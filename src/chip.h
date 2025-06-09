@@ -9,8 +9,10 @@
 #define CHIP_STACK_BOTTOM_ADDR 0x0100
 
 typedef struct chip_t {
-  byte *memory;
   u32 quota;
+  bool halted;
+
+  byte *memory;
 
   u16 pc;
   byte ac, x, y, sr, sp;
@@ -42,6 +44,7 @@ static void chip_init(chip_t *self, byte *memory, u32 quota) {
   self->quota = quota;
   self->pc = 0;
   self->sp = 0xFF;
+  self->halted = false;
 }
 
 static void chip_load_rom(chip_t* self, byte* rom, size_t len, u16 rom_start) {

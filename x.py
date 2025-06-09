@@ -78,6 +78,7 @@ export_only = {
     "TXS",
     "CLD",
     "INX",
+    "BRK",
 }
 
 instruction_modes = defaultdict(list)

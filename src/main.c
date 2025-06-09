@@ -12,7 +12,7 @@ int main(void) {
   byte *memory = (byte *)malloc(MEMORY_SIZE);
 
   chip_t chip;
-  chip_init(&chip, memory, 1000000);
+  chip_init(&chip, memory, 0);
 
   byte* rom = (byte*)malloc(MEMORY_SIZE);
   FILE *file = fopen("./examples/c/hello-world/main.bin", "rb");
@@ -25,8 +25,7 @@ int main(void) {
 
   chip_load_rom(&chip, rom, filesize, 0xF800);
 
-  while (chip.quota > 0) {
-    chip.quota--;
+  while (!chip.halted) {
     chip_step(&chip);
     chip_dbg_dump(&chip);
     printf("Anticipated Instruction: %s\n",

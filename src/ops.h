@@ -294,7 +294,15 @@ static void chip_op_clc(chip_t *self) { chip_flags_set(self, FLAG_CARRY, 0); }
 // CLear Decimal
 static void chip_op_cld(chip_t *self) { chip_flags_set(self, FLAG_DECIMAL, 0); }
 
+// BReaK
+static void chip_op_brk(chip_t* self) {
+  self->halted = true;
+}
+
 static void chip_step(chip_t *self) {
+  if (self->halted)
+    return;
+
   byte opcode = chip_pc_inc(self);
   chip_decode_execute(self, opcode);
 }
