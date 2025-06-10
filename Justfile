@@ -17,7 +17,7 @@ build-sim-6502: generate _build-warmup
 
 generate:
     mkdir -p ./src/6502/generated
-    python3 ./x.py
+    python3 ./x.py gen
 
 build-example-asm name: _build-warmup build-stdlib
     mkdir -p build/{{name}}
