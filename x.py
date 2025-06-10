@@ -211,14 +211,14 @@ def sim(args):
     for offset, byte in enumerate(program):
         memory[start_addr + offset] = byte
 
-    memory_reads = set()
-    memory_writes = set()
+    memory_reads = []
+    memory_writes = []
 
     memory.subscribe_to_write(
-        range(0x10000), lambda addr, *_: memory_writes.add(addr & 0xFFF0)
+        range(0x10000), lambda addr, *_: memory_writes.append(addr & 0xFFF0)
     )
     memory.subscribe_to_read(
-        range(0x10000), lambda addr: memory_reads.add(addr & 0xFFF0)
+        range(0x10000), lambda addr: memory_reads.append(addr & 0xFFF0)
     )
 
     mpu = mpu6502.MPU(memory)
@@ -231,13 +231,13 @@ def sim(args):
         log_state(mpu)
         mpu.step()
 
-        for row in memory_reads:
+        for row in memory_reads.copy():
             print(f"R {row:04X}: ", end="")
             for i in range(0x10):
                 print(f"{memory[row + i]:02X}", end="")
             print()
 
-        for row in memory_writes:
+        for row in memory_writes.copy():
             print(f"W {row:04X}: ", end="")
             for i in range(0x10):
                 print(f"{memory[row + i]:02X}", end="")
