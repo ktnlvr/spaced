@@ -107,7 +107,9 @@ static void chip_memory_write_direct(chip_t *self, u16 at, byte value) {
   self->memory[at & 0xFFFF] = value;
 }
 
-static byte chip_pc_inc(chip_t *self) { return self->memory[self->pc++]; }
+static byte chip_pc_inc(chip_t *self) {
+  return chip_memory_read_direct(self, self->pc++);
+}
 
 static u32 chip_memory_perform_read(chip_t *self, addressing_mode_t mode) {
   u16 value = 0;

@@ -2,6 +2,7 @@ from collections import defaultdict
 from argparse import ArgumentParser
 from itertools import chain, repeat
 from enum import StrEnum
+import subprocess
 import csv
 
 
@@ -222,6 +223,7 @@ def sim(args):
     )
 
     mpu = mpu6502.MPU(memory)
+    mpu.pc = mpu.WordAt(mpu.RESET)
 
     def log_state(mpu: mpu6502.MPU):
         out = f"S PC={mpu.pc:04X} A={mpu.a:02X} X={mpu.x:02X} Y={mpu.y:02X} SP={mpu.sp:02X}"
@@ -229,6 +231,7 @@ def sim(args):
 
     for _ in range(600):
         log_state(mpu)
+        print(f"O {mpu.ByteAt(mpu.pc):02X}")
         mpu.step()
 
         for row in memory_reads.copy():
@@ -249,6 +252,46 @@ def sim(args):
     log_state(mpu)
 
 
+def compare(args):
+    binary = args.binary
+
+    py65 = subprocess.Popen(["python3", "x.py", "sim", binary], stdout=subprocess.PIPE, text=True)
+    sim6502 = subprocess.Popen(["./build/spaced", binary], stdout=subprocess.PIPE, text=True)
+
+    i = 1
+    while True:
+        py65line = py65.stdout.readline().rstrip()
+        sim6502line = sim6502.stdout.readline().rstrip()
+
+        if py65line == '' and sim6502line == '':
+            break
+
+        print("PY65    |", py65line)
+        print("SIM6502 |", sim6502line)
+
+        if i > 20:
+            break
+        
+        """
+        if py65line != sim6502line:
+            print(f"Diverging outputs at line {i}...")
+            print("Expected:")
+            print("```")
+            print(py65line.rstrip())
+            print("```")
+            print("Received:")
+            print("```")
+            print(sim6502line.rstrip())
+            print("```")
+            break
+        """
+
+        i += 1
+
+    py65.wait(1)
+    sim6502.wait(1)
+
+
 if __name__ == "__main__":
     parser = ArgumentParser(prog="x.py")
     subparsers = parser.add_subparsers(
@@ -256,6 +299,10 @@ if __name__ == "__main__":
     )
 
     subparsers.add_parser("gen").set_defaults(func=gen)
+
+    compare_parser = subparsers.add_parser("compare")
+    compare_parser.set_defaults(func=compare)
+    compare_parser.add_argument("binary")
 
     sim_parser = subparsers.add_parser("sim")
     sim_parser.set_defaults(func=sim)

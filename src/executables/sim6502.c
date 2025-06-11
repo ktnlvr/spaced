@@ -24,8 +24,8 @@ byte memory_read_callback(chip_monitor_t *monitor, u16 addr, byte value) {
 }
 
 void chip_show_registers(chip_t *self) {
-  printf("S PC=%04X A=%02X X=%02X Y=%02X SR=%02X\n", self->pc, self->ac, self->x,
-         self->y, self->sr);
+  printf("S PC=%04X A=%02X X=%02X Y=%02X SP=%02X\n", self->pc, self->ac, self->x,
+         self->y, self->sp);
 }
 
 void chip_monitor_show_writes(chip_t* chip, chip_monitor_t *self) {
@@ -70,7 +70,6 @@ int main(int argc, const char *argv[]) {
   fseek(file, 0, SEEK_END);
   u16 filesize = ftell(file);
   fseek(file, 0, SEEK_SET);
-  printf("ROM Size: %d\n", filesize);
   fread(rom, 1, filesize, file);
   fclose(file);
 
@@ -78,6 +77,7 @@ int main(int argc, const char *argv[]) {
 
   while (!chip.halted) {
     chip_show_registers(&chip);
+    printf("O %02X\n", chip.memory[chip.pc]);
     chip_step(&chip);
     chip_monitor_show_writes(&chip, &monitor);
   }
