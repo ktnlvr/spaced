@@ -2,6 +2,7 @@
 #define __SPACED_H__CHIP__
 
 #include <string.h>
+#include <stdio.h>
 
 #include "../defs.h"
 #include "addressing.h"
@@ -68,6 +69,7 @@ static void chip_init(chip_t *self, byte *memory, u32 quota) {
   self->memory = memory;
   self->ac = 0;
   self->sp = 0xFF;
+
   self->pc = 0;
   self->x = 0;
   self->y = 0;
@@ -94,6 +96,11 @@ static void chip_memory_read_callback_set(chip_t *self,
 
 static void chip_load_rom(chip_t *self, byte *rom, size_t len, u16 rom_start) {
   memcpy(self->memory + rom_start, rom, len);
+
+  byte lo = self->memory[0xFFFC];
+  byte hi = self->memory[0xFFFD];
+
+  self->pc = (u16)hi << 8 | lo;
 }
 
 static byte chip_memory_read_direct(chip_t *self, u16 at) {
