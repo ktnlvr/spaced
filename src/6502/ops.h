@@ -384,6 +384,11 @@ static void chip_step(chip_t *self) {
     return;
 
   byte opcode = chip_pc_inc(self);
+  if (opcode == 0x80) {
+    self->halted = true;
+    return;
+  }
+
   chip_decode_execute(self, opcode);
 }
 

@@ -46,5 +46,5 @@ irq:       PLA      ; Pull stack X into A
 ; ---------------------------------------------------------------------------
 ; BRK detected, stop
 
-break:     BRK                    ; If BRK is detected, something very bad
-                                  ;   has happened, so stop running
+break:     .byte $80        ; If BRK is detected, something very bad
+                            ;   has happened, so stop running

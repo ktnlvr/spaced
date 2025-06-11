@@ -27,4 +27,4 @@ _init:  LDX     #$FF
         JSR     _main
 
 _exit:  JSR     donelib
-        BRK
+        .byte $80
