@@ -3,13 +3,14 @@
 
 #include <string.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 #include "../defs.h"
 #include "addressing.h"
 
 #define CHIP_STACK_BOTTOM_ADDR 0x0100
 
-typedef byte (*chip_memory_callback_t)(void *, u16 addr, byte value);
+typedef byte (*chip_memory_callback_t)(void *, bool is_write, u16 addr, byte value);
 
 typedef struct chip_memory_callback_node_t {
   chip_memory_callback_t callback;
@@ -17,8 +18,7 @@ typedef struct chip_memory_callback_node_t {
 } chip_memory_callback_node_t;
 
 typedef struct chip_t {
-  chip_memory_callback_node_t *write_callback;
-  chip_memory_callback_node_t *read_callback;
+  chip_memory_callback_node_t *memory_callback;
   void *userdata;
 
   u32 quota;
@@ -59,8 +59,7 @@ static void chip_dbg_dump(chip_t *self) {
 }
 
 static void chip_init(chip_t *self, byte *memory, u32 quota) {
-  self->write_callback = 0;
-  self->read_callback = 0;
+  self->memory_callback = 0;
   self->userdata = 0;
 
   self->quota = quota;
@@ -76,22 +75,13 @@ static void chip_init(chip_t *self, byte *memory, u32 quota) {
   self->sr = 0;
 }
 
-static void chip_memory_write_callback_set(chip_t *self,
+static void chip_memory_add_callback(chip_t *self,
                                            chip_memory_callback_t callback) {
   chip_memory_callback_node_t *current = (chip_memory_callback_node_t *)malloc(
       sizeof(chip_memory_callback_node_t));
   current->callback = callback;
-  current->next = self->write_callback;
-  self->write_callback = current;
-}
-
-static void chip_memory_read_callback_set(chip_t *self,
-                                          chip_memory_callback_t callback) {
-  chip_memory_callback_node_t *current = (chip_memory_callback_node_t *)malloc(
-      sizeof(chip_memory_callback_node_t));
-  current->callback = callback;
-  current->next = self->write_callback;
-  self->read_callback = current;
+  current->next = self->memory_callback;
+  self->memory_callback = current;
 }
 
 static void chip_load_rom(chip_t *self, byte *rom, size_t len, u16 rom_start) {
@@ -106,17 +96,17 @@ static void chip_load_rom(chip_t *self, byte *rom, size_t len, u16 rom_start) {
 static byte chip_memory_read_direct(chip_t *self, u16 at) {
   byte value = self->memory[at & 0xFFFF];
 
-  for (chip_memory_callback_node_t *read_node = self->read_callback; read_node;
+  for (chip_memory_callback_node_t *read_node = self->memory_callback; read_node;
        read_node = read_node->next)
-    value = read_node->callback(self->userdata, at, value);
+    value = read_node->callback(self->userdata, false, at, value);
 
   return value;
 }
 
 static void chip_memory_write_direct(chip_t *self, u16 at, byte value) {
-  for (chip_memory_callback_node_t *write_node = self->write_callback;
+  for (chip_memory_callback_node_t *write_node = self->memory_callback;
        write_node; write_node = write_node->next)
-    value = write_node->callback(self->userdata, at, value);
+    value = write_node->callback(self->userdata, true, at, value);
 
   self->memory[at & 0xFFFF] = value;
 }
