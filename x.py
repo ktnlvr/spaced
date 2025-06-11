@@ -85,6 +85,8 @@ export_only = {
     "AND",
     "LSR",
     "BVS",
+    "BRK",
+    "TSX",
 }
 
 
@@ -216,14 +218,13 @@ def sim(args):
     memory_writes = []
 
     memory.subscribe_to_write(
-        range(0x10000), lambda addr, *_: memory_writes.append(addr & 0xFFF0)
+        range(0x10000), lambda addr, *_: memory_writes.append(addr) if addr not in memory_writes else None
     )
     memory.subscribe_to_read(
-        range(0x10000), lambda addr: memory_reads.append(addr & 0xFFF0)
+        range(0x10000), lambda addr: memory_reads.append(addr) if addr not in memory_reads else None
     )
 
     mpu = mpu6502.MPU(memory)
-    mpu.pc = mpu.WordAt(mpu.RESET)
 
     def log_state(mpu: mpu6502.MPU):
         out = f"S PC={mpu.pc:04X} A={mpu.a:02X} X={mpu.x:02X} Y={mpu.y:02X} SP={mpu.sp:02X}"
@@ -235,15 +236,11 @@ def sim(args):
         mpu.step()
 
         for row in memory_reads.copy():
-            print(f"R {row:04X}: ", end="")
-            for i in range(0x10):
-                print(f"{memory[row + i]:02X}", end="")
+            print(f"R {row:04X}: {memory._subject[row]:02X}", end="")
             print()
 
         for row in memory_writes.copy():
-            print(f"W {row:04X}: ", end="")
-            for i in range(0x10):
-                print(f"{memory[row + i]:02X}", end="")
+            print(f"W {row:04X}: {memory._subject[row]:02X}", end="")
             print()
 
         memory_reads.clear()
@@ -268,6 +265,10 @@ def compare(args):
 
         print("PY65    |", py65line)
         print("SIM6502 |", sim6502line)
+
+        if py65line != sim6502line:
+            print(f"Divergence at line {i}")
+            break
 
         if i > 20:
             break

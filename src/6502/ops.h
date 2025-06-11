@@ -157,6 +157,11 @@ static void chip_op_txa(chip_t *self) {
 
 static void chip_op_txs(chip_t *self) { self->sp = self->x; }
 
+static void chip_op_tsx(chip_t *self) {
+  self->x = self->sp;
+  chip_flags_update_zero_negative(self, self->x);
+}
+
 static void chip_op_tax(chip_t *self) {
   self->x = self->ac;
   chip_flags_update_zero_negative(self, self->ac);
@@ -358,7 +363,21 @@ static void chip_op_clc(chip_t *self) { chip_flags_set(self, FLAG_CARRY, 0); }
 static void chip_op_cld(chip_t *self) { chip_flags_set(self, FLAG_DECIMAL, 0); }
 
 // BReaK
-static void chip_op_brk(chip_t *self) { self->halted = true; }
+static void chip_op_brk(chip_t *self) {
+  u16 pc = (self->pc + 1) & 0xFFFF;
+
+  chip_stack_push(self, (pc >> 8) & 0xFF);
+  chip_stack_push(self, pc & 0xFF);
+
+  byte status = self->sr | FLAG_MASK_B | FLAG_MASK_B;
+  chip_stack_push(self, status);
+  chip_flags_set(self, FLAG_INTERRUPT_DISABLE, 1);
+
+  byte lo = chip_memory_read_direct(self, 0xFFFE);
+  byte hi = chip_memory_read_direct(self, 0xFFFF);
+
+  self->pc = ((u16)hi << 8) | lo;
+}
 
 static void chip_step(chip_t *self) {
   if (self->halted)

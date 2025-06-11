@@ -32,7 +32,11 @@ typedef struct chip_t {
 typedef enum register_flags_t {
   FLAG_CARRY = 0,
   FLAG_ZERO = 1,
+  FLAG_INTERRUPT_DISABLE = 2,
   FLAG_DECIMAL = 3,
+  // TODO: This is cryptic, find a better name
+  FLAG_B = 4,
+  FLAG_UNUSED = 5,
   FLAG_OVERFLOW = 6,
   FLAG_NEGATIVE = 7,
 } register_flags_t;
@@ -40,6 +44,10 @@ typedef enum register_flags_t {
 typedef enum register_flags_mask_t {
   FLAG_MASK_CARRY = 0b00000001,
   FLAG_MASK_ZERO = 0b00000010,
+  FLAG_MASK_INTERRUPT_DISABLE = 0b00000100,
+  FLAG_MASK_DECIMAL = 0b00001000,
+  FLAG_MASK_B = 0b00010000,
+  FLAG_MASK_UNUSED = 0b00100000,
   FLAG_MASK_OVERFLOW = 0b01000000,
   FLAG_MASK_NEGATIVE = 0b10000000,
 } register_flags_mask_t;
@@ -86,7 +94,6 @@ static void chip_memory_read_callback_set(chip_t *self,
 
 static void chip_load_rom(chip_t *self, byte *rom, size_t len, u16 rom_start) {
   memcpy(self->memory + rom_start, rom, len);
-  self->pc = self->memory[0xFFFC] | (self->memory[0xFFFD] << 8);
 }
 
 static byte chip_memory_read_direct(chip_t *self, u16 at) {

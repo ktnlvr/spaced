@@ -14,12 +14,12 @@ typedef struct chip_monitor_t {
 } chip_monitor_t;
 
 byte memory_write_callback(chip_monitor_t *monitor, u16 addr, byte value) {
-  monitor->write_addresses[monitor->write_ptr++] = addr & 0xFFF0;
+  monitor->write_addresses[monitor->write_ptr++] = addr;
   return value;
 }
 
 byte memory_read_callback(chip_monitor_t *monitor, u16 addr, byte value) {
-  monitor->read_addresses[monitor->read_ptr++] = addr & 0xFFF0;
+  monitor->read_addresses[monitor->read_ptr++] = addr;
   return value;
 }
 
@@ -28,21 +28,15 @@ void chip_show_registers(chip_t *self) {
          self->y, self->sp);
 }
 
-void chip_monitor_show_writes(chip_t* chip, chip_monitor_t *self) {
+void chip_monitor_show(chip_t* chip, chip_monitor_t *self) {
   for (int i = 0; i < self->read_ptr; i++) {
     u16 addr = self->read_addresses[i];
-    printf("R %04X: ", addr);
-    for (int j = 0; j < 16; j++)
-      printf("%02X", chip->memory[addr + j]);
-    printf("\n");
+    printf("R %04X: %02X\n", addr, chip->memory[addr]);
   }
 
   for (int i = 0; i < self->write_ptr; i++) {
     u16 addr = self->write_addresses[i];
-    printf("W %04X: ", addr);
-    for (int j = 0; j < 16; j++)
-      printf("%02X", chip->memory[addr + j]);
-    printf("\n");
+    printf("W %04X: %02X\n", addr, chip->memory[addr]);
   }
 
   self->read_ptr = 0;
@@ -50,6 +44,9 @@ void chip_monitor_show_writes(chip_t* chip, chip_monitor_t *self) {
 }
 
 int main(int argc, const char *argv[]) {
+  // Disable for better reading from other programs
+  setvbuf(stdout, NULL, _IOLBF, 0);
+
   byte *memory = (byte *)malloc(MEMORY_SIZE);
   memset(memory, 0, MEMORY_SIZE);
 
@@ -79,7 +76,7 @@ int main(int argc, const char *argv[]) {
     chip_show_registers(&chip);
     printf("O %02X\n", chip.memory[chip.pc]);
     chip_step(&chip);
-    chip_monitor_show_writes(&chip, &monitor);
+    chip_monitor_show(&chip, &monitor);
   }
 
   chip_show_registers(&chip);
