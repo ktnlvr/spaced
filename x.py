@@ -199,100 +199,6 @@ static const char *opcode_to_str(byte opcode) {{
         f.write(instruction_lookup_template)
 
 
-def sim(args):
-    from py65.devices import mpu6502
-    from py65.memory import ObservableMemory
-
-    filename = args.file
-    program = None
-    with open(filename, "rb") as f:
-        program = f.read()
-
-    memory = ObservableMemory()
-    start_addr = 0xF800
-
-    for offset, byte in enumerate(program):
-        memory[start_addr + offset] = byte
-
-    memory_reads = []
-    memory_writes = []
-
-    memory.subscribe_to_write(
-        range(0x10000), lambda addr, *_: memory_writes.append(addr) if addr not in memory_writes else None
-    )
-    memory.subscribe_to_read(
-        range(0x10000), lambda addr: memory_reads.append(addr) if addr not in memory_reads else None
-    )
-
-    mpu = mpu6502.MPU(memory)
-
-    def log_state(mpu: mpu6502.MPU):
-        out = f"S PC={mpu.pc:04X} A={mpu.a:02X} X={mpu.x:02X} Y={mpu.y:02X} SP={mpu.sp:02X}"
-        print(out)
-
-    for _ in range(600):
-        log_state(mpu)
-        print(f"O {mpu.ByteAt(mpu.pc):02X}")
-        mpu.step()
-
-        for row in memory_reads.copy():
-            print(f"R {row:04X}: {memory._subject[row]:02X}", end="")
-            print()
-
-        for row in memory_writes.copy():
-            print(f"W {row:04X}: {memory._subject[row]:02X}", end="")
-            print()
-
-        memory_reads.clear()
-        memory_writes.clear()
-
-    log_state(mpu)
-
-
-def compare(args):
-    binary = args.binary
-
-    py65 = subprocess.Popen(["python3", "x.py", "sim", binary], stdout=subprocess.PIPE, text=True)
-    sim6502 = subprocess.Popen(["./build/spaced", binary], stdout=subprocess.PIPE, text=True)
-
-    i = 1
-    while True:
-        py65line = py65.stdout.readline().rstrip()
-        sim6502line = sim6502.stdout.readline().rstrip()
-
-        if py65line == '' and sim6502line == '':
-            break
-
-        print("PY65    |", py65line)
-        print("SIM6502 |", sim6502line)
-
-        if py65line != sim6502line:
-            print(f"Divergence at line {i}")
-            break
-
-        if i > 20:
-            break
-        
-        """
-        if py65line != sim6502line:
-            print(f"Diverging outputs at line {i}...")
-            print("Expected:")
-            print("```")
-            print(py65line.rstrip())
-            print("```")
-            print("Received:")
-            print("```")
-            print(sim6502line.rstrip())
-            print("```")
-            break
-        """
-
-        i += 1
-
-    py65.wait(1)
-    sim6502.wait(1)
-
-
 if __name__ == "__main__":
     parser = ArgumentParser(prog="x.py")
     subparsers = parser.add_subparsers(
@@ -300,14 +206,6 @@ if __name__ == "__main__":
     )
 
     subparsers.add_parser("gen").set_defaults(func=gen)
-
-    compare_parser = subparsers.add_parser("compare")
-    compare_parser.set_defaults(func=compare)
-    compare_parser.add_argument("binary")
-
-    sim_parser = subparsers.add_parser("sim")
-    sim_parser.set_defaults(func=sim)
-    sim_parser.add_argument("file")
 
     args = parser.parse_args()
     args.func(args)

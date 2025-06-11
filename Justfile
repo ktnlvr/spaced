@@ -46,8 +46,3 @@ xxd-ignore-zeros filename:
     @echo "Printing the dump of {{filename}}"
     @echo "Careful! Zero lines not printed." 
     xxd -g2 {{filename}} | rg -v '0000 0000 0000 0000 0000 0000 0000 0000'
-
-alias ce := compare-examples
-
-compare-examples example:
-    just b && python3 x.py compare ./build/{{example}}/main.bin
