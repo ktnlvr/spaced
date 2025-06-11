@@ -123,7 +123,7 @@ static void chip_op_lda(chip_t *self, addressing_mode_t mode) {
 
 static void chip_op_jmp(chip_t *self, addressing_mode_t mode) {
   u16 read = chip_memory_read_addr(self, mode);
-  self->pc = read % 0xFFFF;
+  self->pc = read & 0xFFFF;
 }
 
 static void chip_op_ldy(chip_t *self, addressing_mode_t mode) {
@@ -194,6 +194,7 @@ static void chip_op_adc(chip_t *self, addressing_mode_t mode) {
   chip_flags_update_carry(self, result > 0xFF);
   chip_flags_update_zero_negative(self, result);
 
+  // byte overflow = (self->ac ^ result8) & (value ^ result8) & 0x80;
   byte overflow =
       (self->ac ^ (byte)result) & ((~(self->ac ^ value) & 0x80) != 0);
   chip_flags_update_overflow(self, overflow);
@@ -271,7 +272,7 @@ static void chip_op_asl(chip_t *self, addressing_mode_t mode) {
   if (mode == ADDR_MODE_ACCUMULATOR)
     value = self->ac;
   else {
-    byte read = chip_memory_perform_read(self, mode);
+    u32 read = chip_memory_perform_read(self, mode);
     value = get_memory_word(read);
     addr = get_memory_addr(read);
   }
@@ -294,15 +295,15 @@ static void chip_op_ror(chip_t *self, addressing_mode_t mode) {
   if (mode == ADDR_MODE_ACCUMULATOR)
     value = self->ac;
   else {
-    byte read = chip_memory_perform_read(self, mode);
+    u32 read = chip_memory_perform_read(self, mode);
     value = get_memory_word(read);
     addr = get_memory_addr(read);
   }
 
-  byte carry = value & 1;
-  byte result = (carry << 7) | (value >> 1);
-
-  chip_flags_update_carry(self, carry);
+  byte old_carry = chip_flags_get(self, FLAG_CARRY);
+  byte new_carry = value & 1;
+  byte result = (old_carry << 7) | (value >> 1);
+  chip_flags_update_carry(self, new_carry);
   chip_flags_update_zero_negative(self, result);
 
   if (mode == ADDR_MODE_ACCUMULATOR)
@@ -317,7 +318,7 @@ static void chip_op_lsr(chip_t *self, addressing_mode_t mode) {
   if (mode == ADDR_MODE_ACCUMULATOR)
     value = self->ac;
   else {
-    byte read = chip_memory_perform_read(self, mode);
+    u32 read = chip_memory_perform_read(self, mode);
     value = get_memory_word(read);
     addr = get_memory_addr(read);
   }
@@ -340,7 +341,7 @@ static void chip_op_rol(chip_t *self, addressing_mode_t mode) {
   if (mode == ADDR_MODE_ACCUMULATOR)
     value = self->ac;
   else {
-    byte read = chip_memory_perform_read(self, mode);
+    u32 read = chip_memory_perform_read(self, mode);
     value = get_memory_word(read);
     addr = get_memory_addr(read);
   }
