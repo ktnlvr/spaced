@@ -87,6 +87,7 @@ export_only = {
     "BVS",
     "BRK",
     "TSX",
+    "BMI",
 }
 
 

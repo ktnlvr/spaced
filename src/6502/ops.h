@@ -13,6 +13,12 @@ static void chip_op_beq(chip_t *self) {
     self->pc += offset;
 }
 
+static void chip_op_bmi(chip_t *self) {
+  i8 offset = chip_memory_read_word(self, ADDR_MODE_RELATIVE);
+  if (chip_flags_get(self, FLAG_NEGATIVE) == 1)
+    self->pc += offset;
+}
+
 static void chip_op_bpl(chip_t *self) {
   i8 offset = chip_memory_read_word(self, ADDR_MODE_RELATIVE);
   if (chip_flags_get(self, FLAG_NEGATIVE) == 0)
