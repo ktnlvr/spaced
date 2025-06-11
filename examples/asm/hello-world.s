@@ -28,8 +28,7 @@ loop:
     inx
     jmp loop
     
-done:
-    brk
+done: 
     rts
 
 .endproc
