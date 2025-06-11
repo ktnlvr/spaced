@@ -173,7 +173,16 @@ static void chip_op_tax(chip_t *self) {
   chip_flags_update_zero_negative(self, self->ac);
 }
 
+// SEt Carry
 static void chip_op_sec(chip_t *self) { chip_flags_set(self, FLAG_CARRY, 1); }
+
+// SEt Interrupt disable
+static void chip_op_sei(chip_t *self) {
+  chip_flags_set(self, FLAG_INTERRUPT_DISABLE, 1);
+}
+
+// SEt Decimal
+static void chip_op_sed(chip_t *self) { chip_flags_set(self, FLAG_DECIMAL, 1); }
 
 static void chip_op_sbc(chip_t *self, addressing_mode_t mode) {
   byte value = chip_memory_read_word(self, mode);
@@ -364,10 +373,21 @@ static void chip_op_rol(chip_t *self, addressing_mode_t mode) {
     chip_memory_write_direct(self, addr, result);
 }
 
+// CLear Carry
 static void chip_op_clc(chip_t *self) { chip_flags_set(self, FLAG_CARRY, 0); }
+
+// CLear Interrupt disable
+static void chip_op_cli(chip_t *self) {
+  chip_flags_set(self, FLAG_INTERRUPT_DISABLE, 0);
+}
 
 // CLear Decimal
 static void chip_op_cld(chip_t *self) { chip_flags_set(self, FLAG_DECIMAL, 0); }
+
+// CLear oVerflow
+static void chip_op_clv(chip_t *self) {
+  chip_flags_set(self, FLAG_OVERFLOW, 0);
+}
 
 // BReaK
 static void chip_op_brk(chip_t *self) {
@@ -385,6 +405,9 @@ static void chip_op_brk(chip_t *self) {
 
   self->pc = ((u16)hi << 8) | lo;
 }
+
+// NO oPeration
+static void chip_op_nop(chip_t *self) {}
 
 static void chip_step(chip_t *self) {
   if (self->halted)

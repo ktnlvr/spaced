@@ -88,6 +88,11 @@ export_only = {
     "BRK",
     "TSX",
     "BMI",
+    "NOP",
+    "SEI",
+    "CLI",
+    "SED",
+    "CLV",
 }
 
 
