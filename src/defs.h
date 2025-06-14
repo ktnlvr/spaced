@@ -18,6 +18,10 @@
     abort();                                                                   \
   } while (0)
 
+// TODO: replace builtins
+#define FLOAT32_INFTY (__builtin_inff())
+#define FLOAT32_NEG_INFTY (-__builtin_inff())
+
 typedef uint32_t u32;
 typedef int32_t i32;
 typedef uint16_t u16;
