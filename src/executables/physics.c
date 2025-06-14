@@ -1,14 +1,41 @@
+#include <stdio.h>
+#include <string.h>
+
+#include "../arena.h"
 #include "../physics/sat.h"
 
-int main(void) {
-  vec2 a[] = {{1, 1}, {4, 1}, {2, 4}};
-  vec2 b[] = {{2, 2}, {5, 2}, {3, 5}};
+int sat_poly() {
+  int shapes;
+  scanf("%d", &shapes);
 
-  float2 minimal_separation;
-  bool intersect = sat_intersect(a, 3, b, 3, &minimal_separation);
+  int *vertex_count = arena_alloc_ty(int, shapes);
+  vec2 **vertices = arena_alloc_ty(vec2 *, shapes);
 
-  printf("%d intersect\n", intersect);
-  printf("%f %f separation\n", minimal_separation.x, minimal_separation.y);
+  for (int i = 0; i < shapes; i++) {
+    scanf("%d", &vertex_count[i]);
+    vertices[i] = arena_alloc_ty(vec2, vertex_count[i]);
+    for (int j = 0; j < vertex_count[i]; j++)
+      scanf("%f %f", &vertices[i][j].x, &vertices[i][j].y);
+  }
+
+  for (int i = 0; i < shapes; i++) {
+    for (int j = 0; j < i; j++) {
+      bool ix = sat_intersect(vertices[i], vertex_count[i], vertices[j],
+                              vertex_count[j], 0);
+      printf("%d\n", ix);
+    }
+  }
 
   return 0;
+}
+
+int main(void) {
+  arena_init_default();
+
+  // TODO: switch based on the mode
+  int ret = sat_poly();
+
+  arena_free();
+
+  return ret;
 }
