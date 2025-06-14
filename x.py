@@ -1,6 +1,7 @@
 from collections import defaultdict
 from argparse import ArgumentParser
 from itertools import chain, repeat
+from dataclasses import dataclass
 from enum import StrEnum
 import subprocess
 import csv
@@ -74,19 +75,6 @@ export_only = {
     "TYA",
     "ADC",
     "BCC",
-    "ORA",
-    "BPL",
-    "TXS",
-    "CLD",
-    "INX",
-    "BRK",
-    "CPX",
-    "ROR",
-    "AND",
-    "LSR",
-    "BVS",
-    "BRK",
-    "TSX",
     "BMI",
     "NOP",
     "SEI",
@@ -205,6 +193,47 @@ static const char *opcode_to_str(byte opcode) {{
         f.write(instruction_lookup_template)
 
 
+def chunks(ls, n):
+    """Yield successive n-sized chunks from lst."""
+    for i in range(0, len(ls), n):
+        yield ls[i:i + n]
+
+def test(args):
+    executable_name = args.exepath
+    tests = args.test
+
+    @dataclass
+    class TestCase:
+        name: str
+        given_raw: str
+        given: str
+        expected_raw: str
+        expected: str
+
+    for test in tests:
+        cases = []
+        content = []
+
+        with open(f'tests/{test}.txt', 'r') as f:
+            content = f.read().strip().split('\n\n')
+
+        for [name, given, expected] in chunks(content, 3):
+            name = name.strip()
+
+            def filter_out_comments(lines):
+                return [line.split(';')[0].strip() for line in lines]
+
+            given_raw = given.splitlines()
+            given = filter_out_comments(given_raw)
+            expected_raw = expected.splitlines()
+            expected = filter_out_comments(expected_raw)
+
+            case = TestCase(name, given_raw, given, expected_raw, expected)
+            cases.append(case)
+
+        print(f"Found {len(cases)} test cases in {test}!")
+
+
 if __name__ == "__main__":
     parser = ArgumentParser(prog="x.py")
     subparsers = parser.add_subparsers(
@@ -212,6 +241,11 @@ if __name__ == "__main__":
     )
 
     subparsers.add_parser("gen").set_defaults(func=gen)
+
+    test_parser = subparsers.add_parser("test")
+    test_parser.add_argument('-t', '--test', nargs='+', required=True)
+    test_parser.add_argument('exepath')
+    test_parser.set_defaults(func=test)
 
     args = parser.parse_args()
     args.func(args)

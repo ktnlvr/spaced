@@ -1,0 +1,10 @@
+# Two Triangles Intersecting
+
+sat-poly        ; Enable Polygon SAT mode
+2               ; 2 shapes
+3               ; 3 vertices, first triangle
+1 1 4 1 2 4
+3
+2 2 5 2 3 5     ; 3 vertices, second triangle
+
+1               ; Yes, the triangles intersected
