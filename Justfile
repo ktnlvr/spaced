@@ -5,6 +5,9 @@ alias sim := run-6502-example
 default:
     just --list
 
+build-physics:
+    clang -Isrc src/executables/physics.c -o ./build/spaced-physics -std=c99 -g
+
 run-6502-example example: build-sim-6502 build-stdlib
     ./build/spaced ./build/{{example}}/main.bin
     xxd -g2 dump.bin | grep -v '0000 0000 0000 0000 0000 0000 0000 0000'
