@@ -196,7 +196,8 @@ static const char *opcode_to_str(byte opcode) {{
 def chunks(ls, n):
     """Yield successive n-sized chunks from lst."""
     for i in range(0, len(ls), n):
-        yield ls[i:i + n]
+        yield ls[i : i + n]
+
 
 def test(args):
     executable_name = args.exepath
@@ -214,14 +215,14 @@ def test(args):
         cases = []
         content = []
 
-        with open(f'tests/{test}.txt', 'r') as f:
-            content = f.read().strip().split('\n\n')
+        with open(f"tests/{test}.txt", "r") as f:
+            content = f.read().strip().split("\n\n")
 
         for [name, given, expected] in chunks(content, 3):
             name = name.strip()
 
             def filter_out_comments(lines):
-                return [line.split(';')[0].strip() for line in lines]
+                return [line.split(";")[0].strip() for line in lines]
 
             given_raw = given.splitlines()
             given = filter_out_comments(given_raw)
@@ -233,6 +234,36 @@ def test(args):
 
         print(f"Found {len(cases)} test cases in {test}!")
 
+        for case in cases:
+            print(f"Running {case.name}...")
+            process = subprocess.Popen(
+                executable_name,
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+            )
+
+            inputs = '\n'.join(case.given) + '\n'
+            outputs = '\n'.join(case.expected)
+
+            stdout, stderr = process.communicate(input=inputs)
+            stdout = stdout.strip()
+            stderr = stderr.strip()
+            if stderr != '' or stdout != outputs:
+                print("not ok!")
+                print("expected:\n````")
+                print(outputs)
+                print('```')
+                print("stdout:```")
+                print(stdout)
+                print('```')
+                print("stderr:```")
+                print(stderr)
+                print('```')
+            else:
+                print("ok.")
+
 
 if __name__ == "__main__":
     parser = ArgumentParser(prog="x.py")
@@ -243,8 +274,8 @@ if __name__ == "__main__":
     subparsers.add_parser("gen").set_defaults(func=gen)
 
     test_parser = subparsers.add_parser("test")
-    test_parser.add_argument('-t', '--test', nargs='+', required=True)
-    test_parser.add_argument('exepath')
+    test_parser.add_argument("-t", "--test", nargs="+", required=True)
+    test_parser.add_argument("exepath")
     test_parser.set_defaults(func=test)
 
     args = parser.parse_args()
