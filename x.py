@@ -252,13 +252,13 @@ def test(args):
             stderr = stderr.strip()
             if stderr != '' or stdout != outputs:
                 print("not ok!")
-                print("expected:\n````")
+                print("expected:\n```")
                 print(outputs)
                 print('```')
-                print("stdout:```")
+                print("stdout:\n```")
                 print(stdout)
                 print('```')
-                print("stderr:```")
+                print("stderr:\n```")
                 print(stderr)
                 print('```')
             else:
