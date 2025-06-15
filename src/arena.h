@@ -45,6 +45,6 @@ static void arena_free() {
   arena_size = 0;
 }
 
-#define arena_alloc_ty(ty, sz) (ty *)arena_alloc(sz)
+#define arena_alloc_ty(ty, sz) (ty *)arena_alloc(sz * sizeof(ty))
 
 #endif
