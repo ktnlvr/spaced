@@ -1,12 +1,15 @@
 alias b := build-sim-6502
 alias g := generate
 alias sim := run-6502-example
+alias test := run-tests
 
 default:
     just --list
 
-build-physics:
-    clang -Isrc src/executables/physics.c -o ./build/spaced-physics -std=c99 -g -lm -fsanitize=address
+run-tests: _build-warmup
+    mkdir -p ./build/test
+    clang -Isrc src/executables/test/physics.c -o ./build/test/physics -std=c99 -g -lm -fsanitize=address
+    python3 x.py test ./build/test/physics -t physics/sat
 
 run-6502-example example: build-sim-6502 build-stdlib
     ./build/spaced ./build/{{example}}/main.bin

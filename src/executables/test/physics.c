@@ -1,13 +1,10 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "../arena.h"
-#include "../physics/sat.h"
+#include "../../arena.h"
+#include "../../physics/sat.h"
 
-int sat_poly() {
-  int shapes;
-  scanf("%d", &shapes);
-
+int sat_test(int shapes) {
   int *vertex_count = arena_alloc_ty(int, shapes);
   vec2 **vertices = arena_alloc_ty(vec2 *, shapes);
 
@@ -32,8 +29,12 @@ int sat_poly() {
 int main(void) {
   arena_init_default();
 
-  // TODO: switch based on the mode
-  int ret = sat_poly();
+  int ret, shapes;
+  if (scanf("sat-test %d", &shapes)) {
+    ret = sat_test(shapes);
+  } else {
+    fprintf(stderr, "Failed to match the test type to a mode");
+  }
 
   arena_free();
 
