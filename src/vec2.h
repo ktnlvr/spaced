@@ -27,6 +27,12 @@ static vec2 vec2_sub(vec2 a, vec2 b) {
   return ret;
 }
 
+static vec2 vec2_scale(vec2 a, float c) {
+  a.x *= c;
+  a.y *= c;
+  return a;
+}
+
 static vec2 vec2_perpendicular(vec2 v) {
   vec2 ret;
   ret.x = -v.y;
