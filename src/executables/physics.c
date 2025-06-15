@@ -21,7 +21,7 @@ int sat_poly() {
   for (int i = 0; i < shapes; i++) {
     for (int j = 0; j < i; j++) {
       bool ix = sat_intersect(vertices[i], vertex_count[i], vertices[j],
-                              vertex_count[j], 0);
+                              vertex_count[j]);
       printf("%d\n", ix);
     }
   }
