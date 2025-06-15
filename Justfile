@@ -6,7 +6,7 @@ default:
     just --list
 
 build-physics:
-    clang -Isrc src/executables/physics.c -o ./build/spaced-physics -std=c99 -g -lm
+    clang -Isrc src/executables/physics.c -o ./build/spaced-physics -std=c99 -g -lm -fsanitize=address
 
 run-6502-example example: build-sim-6502 build-stdlib
     ./build/spaced ./build/{{example}}/main.bin
