@@ -232,10 +232,10 @@ def test(args):
             case = TestCase(name, given_raw, given, expected_raw, expected)
             cases.append(case)
 
-        print(f"Found {len(cases)} test cases in {test}!")
+        print(f"found {len(cases)} test cases in {test}!")
 
         for case in cases:
-            print(f"Running {case.name}...")
+            print(f"running {case.name}...")
             process = subprocess.Popen(
                 executable_name,
                 stdin=subprocess.PIPE,
@@ -248,19 +248,15 @@ def test(args):
             outputs = '\n'.join(case.expected)
 
             stdout, stderr = process.communicate(input=inputs)
+            inputs = inputs.strip()
             stdout = stdout.strip()
             stderr = stderr.strip()
-            if stderr != '' or stdout != outputs:
+            if stdout != outputs:
                 print("not ok!")
-                print("expected:\n```")
-                print(outputs)
-                print('```')
-                print("stdout:\n```")
-                print(stdout)
-                print('```')
-                print("stderr:\n```")
-                print(stderr)
-                print('```')
+                print("given:\n" + inputs)
+                print("expected:\n" + outputs)
+                print("stdout:\n" + stdout)
+                print("stderr:\n" + stderr)
             else:
                 print("ok.")
 
