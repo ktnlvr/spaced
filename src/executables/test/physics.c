@@ -1,12 +1,14 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 
 #include "../../arena.h"
 #include "../../physics/sat.h"
 
-int sat_test(int shapes) {
+int sat_test(int shapes, bool calculate_minimal) {
   int *vertex_count = arena_alloc_ty(int, shapes);
   vec2 **vertices = arena_alloc_ty(vec2 *, shapes);
+  vec2 minimal_axis;
 
   for (int i = 0; i < shapes; i++) {
     scanf("%d", &vertex_count[i]);
@@ -18,8 +20,11 @@ int sat_test(int shapes) {
   for (int i = 0; i < shapes; i++) {
     for (int j = 0; j < i; j++) {
       bool ix = sat_intersect(vertices[i], vertex_count[i], vertices[j],
-                              vertex_count[j]);
+                              vertex_count[j], &minimal_axis);
       printf("%d\n", ix);
+      if (ix && calculate_minimal) {
+        printf("%.2f %.2f\n", minimal_axis.x, minimal_axis.y);
+      }
     }
   }
 
@@ -31,7 +36,7 @@ int main(void) {
 
   int ret, shapes;
   if (scanf("sat-test %d", &shapes)) {
-    ret = sat_test(shapes);
+    ret = sat_test(shapes, true);
   } else {
     fprintf(stderr, "Failed to match the test type to a mode");
   }

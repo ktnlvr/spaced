@@ -27,7 +27,17 @@ static float2 sat_vec2_project(vec2 *vs, sz n, vec2 axis) {
   return ret;
 }
 
-static bool sat_intersect(vec2 *vs1, sz n1, vec2 *vs2, sz n2) {
+static bool sat_intersect(vec2 *vs1, sz n1, vec2 *vs2, sz n2, vec2 *minimal) {
+  float minimal_depth = FLOAT32_INFTY;
+
+  if (minimal) {
+    minimal->x = 0.;
+    minimal->y = 0.;
+  }
+
+  // NOTE(Artur): There is a preferred direction of collision resolution for
+  // any two shapes. Is this a concern?
+
   norm2 *axes = (norm2 *)alloca(sizeof(vec2) * (n1 + n2));
 
   for (int i = 0; i < n1; i++) {
@@ -46,12 +56,20 @@ static bool sat_intersect(vec2 *vs1, sz n1, vec2 *vs2, sz n2) {
 
   for (sz i = 0; i < n1 + n2; i++) {
     norm2 axis = axes[i];
-    
+
     float2 a = sat_vec2_project(vs1, n1, axis);
     float2 b = sat_vec2_project(vs2, n2, axis);
-    
-    if (!sat_float2_is_overlap(a, b))
+
+    if(!sat_float2_is_overlap(a, b))
       return false;
+
+    if (minimal) {
+      float depth = fmaxf(b.x, a.y) - fminf(b.y, a.x);
+      if (depth < minimal_depth) {
+        minimal_depth = depth;
+        *minimal = vec2_scale(axis, minimal_depth);
+      }
+    }
   }
 
   return true;
