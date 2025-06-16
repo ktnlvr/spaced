@@ -1,18 +1,47 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-const char *vertex_src = "#version 330 core\n"
-                         "layout (location = 0) in vec2 aPos;"
-                         "layout (location = 1) in vec2 aOffset;"
-                         "void main() {"
-                         "    gl_Position = vec4(aPos + aOffset, 0.0, 1.0);"
-                         "}";
+const char *vertex_src =
+    "#version 330 core\n"
+    "layout (location = 0) in vec2 aPos;"
+    "layout (location = 1) in vec2 aOffset;"
+    "uniform mat4 uProjection;"
+    "void main() {"
+    "    gl_Position = uProjection * vec4(aPos + aOffset, 0.0, 1.0);"
+    "}";
 
 const char *fragment_src = "#version 330 core\n"
                            "out vec4 FragColor;"
                            "void main() {"
                            "    FragColor = vec4(0.4, 0.7, 1.0, 1.0);"
                            "}";
+
+static void set_projection(GLuint program, int width, int height) {
+  float ar = (float)width / (float)height;
+  float left = -ar, right = ar;
+  float bottom = -1, top = 1;
+
+  float ortho[16] = {2. / (right - left),
+                     0,
+                     0,
+                     0,
+                     0,
+                     2. / (top - bottom),
+                     0,
+                     0,
+                     0,
+                     0,
+                     -1,
+                     0,
+                     -(right + left) / (right - left),
+                     -(top + bottom) / (top - bottom),
+                     0,
+                     1};
+
+  GLint location = glGetUniformLocation(program, "uProjection");
+  glUseProgram(program);
+  glUniformMatrix4fv(location, 1, GL_FALSE, ortho);
+}
 
 int main(void) {
   glfwInit();
@@ -41,7 +70,7 @@ int main(void) {
   glDeleteShader(vs);
   glDeleteShader(fs);
 
-  float quad[] = {-0.05f, -0.05f, 0.05f, -0.05f, -0.05f, 0.05f, 0.05f, 0.05f};
+  float quad[] = {-.5, -.5, .5, -.5, -.5, .5, .5, .5};
 
   float positions[] = {-0.5f, -0.5f, 0.5f, -0.5f, -0.5f, 0.5f, 0.5f, 0.5f};
   int instance_count = 4;
@@ -69,6 +98,11 @@ int main(void) {
   glBindVertexArray(0);
 
   while (!glfwWindowShouldClose(window)) {
+    int width, height;
+    glfwGetFramebufferSize(window, &width, &height);
+    glViewport(0, 0, width, height);
+    set_projection(program, width, height);
+
     glClear(GL_COLOR_BUFFER_BIT);
     glUseProgram(program);
     glBindVertexArray(VAO);
