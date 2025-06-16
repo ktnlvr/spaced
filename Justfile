@@ -7,7 +7,7 @@ default:
     just --list
 
 run-client: _build-warmup
-    clang -Isrc src/executables/client.c -o ./build/client -std=c99 -g -lm -fsanitize=address -lglfw -lGL -lX11 -lpthread -lXrandr -ldl
+    clang -Isrc src/executables/client.c -o ./build/client -std=c99 -g -lm -fsanitize=address -lglfw -lGL -lX11 -lpthread -lXrandr -ldl -lGLEW
     ./build/client
 
 run-tests: _build-warmup
