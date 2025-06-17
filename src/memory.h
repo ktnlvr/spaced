@@ -3,7 +3,7 @@
 
 #include "defs.h"
 
-typedef const void *allocator_ptr;
+typedef void *allocator_ptr;
 
 typedef void *(mem_alloc_f)(allocator_ptr allocator, sz size);
 typedef void *(mem_realloc_f)(allocator_ptr allocator, void *memory,
@@ -29,25 +29,25 @@ static void allocator_free(allocator_t allocator, void *memory) {
   allocator.free(allocator.allocator, memory);
 }
 
-static void *alloc_ref_malloc__alloc(allocator_ptr allocator, sz new_size) {
+static void *allocator_malloc__alloc(allocator_ptr allocator, sz new_size) {
   return malloc(new_size);
 }
 
-static void *alloc_ref_malloc__realloc(allocator_ptr allocator, void *memory,
+static void *alloc_malloc__realloc(allocator_ptr allocator, void *memory,
                                        sz new_size) {
   return realloc(memory, new_size);
 }
 
-static void alloc_ref_malloc__free(allocator_ptr allocator, void *memory) {
+static void alloc_malloc__free(allocator_ptr allocator, void *memory) {
   free(memory);
 }
 
 static allocator_t allocator_new_malloc() {
   allocator_t ret;
   ret.allocator = 0;
-  ret.alloc = alloc_ref_malloc__alloc;
-  ret.realloc = alloc_ref_malloc__realloc;
-  ret.free = alloc_ref_malloc__free;
+  ret.alloc = allocator_malloc__alloc;
+  ret.realloc = alloc_malloc__realloc;
+  ret.free = alloc_malloc__free;
 
   return ret;
 }
