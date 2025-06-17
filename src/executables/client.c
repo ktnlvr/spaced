@@ -1,6 +1,8 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+#include "../engine/world.h"
+
 const char *vertex_src =
     "#version 330 core\n"
     "layout (location = 0) in vec2 aPos;"
@@ -44,6 +46,9 @@ static void set_projection(GLuint program, int width, int height) {
 }
 
 int main(void) {
+  world_t world;
+  world_init(&world);
+
   glfwInit();
 
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -118,6 +123,8 @@ int main(void) {
   glDeleteProgram(program);
   glfwDestroyWindow(window);
   glfwTerminate();
+
+  world_cleanup(&world);
 
   return 0;
 }
