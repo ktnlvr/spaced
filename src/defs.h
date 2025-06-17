@@ -23,6 +23,7 @@
 #define FLOAT32_NEG_INFTY (-__builtin_inff())
 
 typedef uint32_t u32;
+typedef uint64_t u64;
 typedef int32_t i32;
 typedef uint16_t u16;
 typedef unsigned char byte;
