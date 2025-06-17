@@ -6,13 +6,13 @@
 #include "../../physics/sat.h"
 
 int sat_test(int shapes, bool calculate_minimal) {
-  int *vertex_count = arena_alloc_ty(int, shapes);
-  vec2 **vertices = arena_alloc_ty(vec2 *, shapes);
+  int *vertex_count = arena_alloc_ty(int, &ARENA_GLOBAL, shapes);
+  vec2 **vertices = arena_alloc_ty(vec2 *, &ARENA_GLOBAL, shapes);
   vec2 minimal_axis;
 
   for (int i = 0; i < shapes; i++) {
     scanf("%d", &vertex_count[i]);
-    vertices[i] = arena_alloc_ty(vec2, vertex_count[i]);
+    vertices[i] = arena_alloc_ty(vec2, &ARENA_GLOBAL, vertex_count[i]);
     for (int j = 0; j < vertex_count[i]; j++)
       scanf("%f %f", &vertices[i][j].x, &vertices[i][j].y);
   }
@@ -32,7 +32,7 @@ int sat_test(int shapes, bool calculate_minimal) {
 }
 
 int main(void) {
-  arena_init_default();
+  arena_init_default(&ARENA_GLOBAL);
 
   int ret, shapes;
   if (scanf("sat-test %d", &shapes)) {
@@ -41,7 +41,7 @@ int main(void) {
     fprintf(stderr, "Failed to match the test type to a mode");
   }
 
-  arena_free();
+  arena_free(&ARENA_GLOBAL);
 
   return ret;
 }

@@ -7,54 +7,60 @@
 
 #define ARENA_DEFAULT_SIZE 0x10000
 
-static byte *arena_root;
-static sz arena_size = 0;
-static sz arena_offset = 0;
+typedef struct {
+  byte *root;
+  sz size;
+  sz offset;
+} arena_t;
 
-static void arena_init(sz size) {
-  arena_root = (byte *)malloc(size);
-  __asan_poison_memory_region(arena_root, size);
+static arena_t ARENA_GLOBAL;
 
-  arena_size = size;
-  arena_offset = 0;
+static void arena_init(arena_t *arena, sz size) {
+  arena->root = (byte *)malloc(size);
+  __asan_poison_memory_region(arena->root, size);
+
+  arena->size = size;
+  arena->offset = 0;
 }
 
-static void arena_init_default() { arena_init(ARENA_DEFAULT_SIZE); }
+static void arena_init_default(arena_t *arena) {
+  arena_init(arena, ARENA_DEFAULT_SIZE);
+}
 
-static void *arena_alloc(sz size) {
+static void *arena_alloc(arena_t *arena, sz size) {
   // TODO: replace with asserts
-  if (!arena_root)
+  if (!arena->root)
     PANIC_("Arena not initialized");
 
-  if (arena_offset + size > arena_size)
+  if (arena->offset + size > arena->size)
     PANIC_("Arena out of memory");
 
-  void *ptr = arena_root + arena_offset;
-  arena_offset += size;
+  void *ptr = arena->root + arena->offset;
+  arena->offset += size;
 
   __asan_unpoison_memory_region(ptr, size);
 
   // Align the pointer correctly.
   // TODO: test if it actually speeds anything up
-  arena_offset = (arena_offset + sizeof(void *) - 1) & ~(sizeof(void *) - 1);
+  arena->offset = (arena->offset + sizeof(void *) - 1) & ~(sizeof(void *) - 1);
 
   return ptr;
 }
 
-static void arena_clear() {
-  __asan_poison_memory_region(arena_root, arena_size);
-  arena_offset = 0;
+static void arena_clear(arena_t *arena) {
+  __asan_poison_memory_region(arena, arena->size);
+  arena->offset = 0;
 }
 
-static void arena_free() {
-  if (arena_root == 0)
+static void arena_free(arena_t *arena) {
+  if (arena->root == 0)
     PANIC_("Attempt to free an uninitialized arena");
 
-  arena_root = 0;
-  arena_offset = 0;
-  arena_size = 0;
+  arena->root = 0;
+  arena->offset = 0;
+  arena->size = 0;
 }
 
-#define arena_alloc_ty(ty, sz) (ty *)arena_alloc(sz * sizeof(ty))
+#define arena_alloc_ty(ty, arena, sz) (ty *)arena_alloc(arena, sz * sizeof(ty))
 
 #endif
