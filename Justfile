@@ -8,7 +8,7 @@ build-tests:
 
 build-test filepath outpath: _build-warmup
     @mkdir -p ./build/tests
-    clang -Isrc {{filepath}} -o {{outpath}} -fsanitize=address -std=c99 -g -lm
+    clang -Isrc {{filepath}} -o {{outpath}} -std=c99 -g -shared -lm
 
 alias b := build-sim-6502
 alias g := generate

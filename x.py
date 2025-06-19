@@ -4,6 +4,7 @@ from itertools import chain, repeat
 from dataclasses import dataclass
 from enum import StrEnum
 import subprocess
+import ctypes
 import csv
 
 
@@ -200,65 +201,51 @@ def chunks(ls, n):
 
 
 def test(args):
-    executable_name = args.exepath
-    tests = args.test
+    char_ptr = ctypes.POINTER(ctypes.c_char)
+    char_ptr_ptr = ctypes.POINTER(char_ptr)
 
-    @dataclass
-    class TestCase:
-        name: str
-        given_raw: str
-        given: str
-        expected_raw: str
-        expected: str
+    for exepath in args.exepaths:
+        libc = ctypes.CDLL(exepath)
 
-    for test in tests:
-        cases = []
-        content = []
+        setup = None
+        cleanup = None
 
-        with open(f"tests/{test}.txt", "r") as f:
-            content = f.read().strip().split("\n\n")
+        if hasattr(libc, "_test_setup"):
+            setup = libc._test_setup
+        if hasattr(libc, "_test_cleanup"):
+            cleanup = libc._test_cleanup
 
-        for [name, given, expected] in chunks(content, 3):
-            name = name.strip()
+        test_names_ptr = ctypes.cast(libc._tests, char_ptr_ptr)
+        test_count = ctypes.c_int32.in_dll(libc, "_test_count").value
 
-            def filter_out_comments(lines):
-                return [line.split(";")[0].strip() for line in lines]
+        test_runner_names = []
+        for i in range(test_count):
+            ptr = test_names_ptr[i]
+            i = 0
+            result = ""
+            while ptr[i] != b'\0':
+                result += ptr[i].decode('ascii')
+                i += 1
+            test_runner_names.append(result)
 
-            given_raw = given.splitlines()
-            given = filter_out_comments(given_raw)
-            expected_raw = expected.splitlines()
-            expected = filter_out_comments(expected_raw)
+        for runner_name in test_runner_names:
+            if setup:
+                setup()
 
-            case = TestCase(name, given_raw, given, expected_raw, expected)
-            cases.append(case)
+            readable_name = runner_name.replace('_', ' ').strip().title()
+            print(f"# {readable_name}...")
+            runner = getattr(libc, runner_name)
 
-        print(f"found {len(cases)} test cases in {test}!")
-
-        for case in cases:
-            print(f"running {case.name}...")
-            process = subprocess.Popen(
-                executable_name,
-                stdin=subprocess.PIPE,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-            )
-
-            inputs = '\n'.join(case.given) + '\n'
-            outputs = '\n'.join(case.expected)
-
-            stdout, stderr = process.communicate(input=inputs)
-            inputs = inputs.strip()
-            stdout = stdout.strip()
-            stderr = stderr.strip()
-            if stdout != outputs:
-                print("not ok!")
-                print("given:\n" + inputs)
-                print("expected:\n" + outputs)
-                print("stdout:\n" + stdout)
-                print("stderr:\n" + stderr)
-            else:
-                print("ok.")
+            try:
+                runner()
+            except e:
+                print(f"not ok!")
+                print(e)
+            finally:
+                print(f"ok.")
+        
+            if cleanup:
+                cleanup()
 
 
 if __name__ == "__main__":
@@ -270,8 +257,7 @@ if __name__ == "__main__":
     subparsers.add_parser("gen").set_defaults(func=gen)
 
     test_parser = subparsers.add_parser("test")
-    test_parser.add_argument("-t", "--test", nargs="+", required=True)
-    test_parser.add_argument("exepath")
+    test_parser.add_argument("exepaths", nargs="+")
     test_parser.set_defaults(func=test)
 
     args = parser.parse_args()

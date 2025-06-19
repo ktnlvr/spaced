@@ -18,7 +18,11 @@
     abort();                                                                   \
   } while (0)
 
-#define EXPECT__(expr) do { if (!(expr)) { PANIC_(#expr); } } while(0)
+#define EXPECT__(expr)                                                         \
+  do {                                                                         \
+    if (!(expr))                                                               \
+      PANIC_("Asserton Failed! " #expr);                                                           \
+  } while (0)
 
 #define EXPECT_(expr, msg)                                                     \
   do {                                                                         \
@@ -35,6 +39,7 @@
 #ifndef NDEBUG
 #define ASSERT(expr, msg, ...) EXPECT(expr, msg, __VA_ARGS__)
 #define ASSERT_(expr, msg) EXPECT_(expr, msg)
+#define ASSERT__(expr) EXPECT__(expr)
 #else
 #define ASSERT(expr, msg, ...) ;
 #define ASSERT_(expr, msg) ;

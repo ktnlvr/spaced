@@ -1,44 +1,56 @@
 #include "../list.h"
+#include "../arena.h"
 
-int main(void) {
-  allocator_t alloc = allocator_new_malloc();
+static list_t list;
 
-  list_t list;
-  list_init_ty(int, &list, alloc);
+void _test_setup() {
+  arena_init_default(&ARENA_GLOBAL);
+  list_init_ty(int, &list, arena_as_allocator(&ARENA_GLOBAL));
+}
 
-  int iters;
-  scanf("%d", &iters);
-
-  for (int i = 0; i < iters; i++) {
-    int push, insert, delete, retrieve;
-    scanf("%d %d %d %d", &push, &insert, &delete, &retrieve);
-
-    for (int i = 0; i < push; i++) {
-      int v;
-      scanf("%d", &v);
-      list_push(&list, &v);
-    }
-
-    for (int i = 0; i < insert; i++) {
-      int k, v;
-      scanf("%d %d", &k, &v);
-      list_insert(&list, k, &v);
-    }
-
-    for (int i = 0; i < delete; i++) {
-      int k;
-      scanf("%d", &k);
-      PANIC_("Deletion not implemented yet");
-    }
-
-    for (int i = 0; i < retrieve; i++) {
-      int k;
-      scanf("%d", &k);
-      printf("%d\n", list_get_ty(int, &list, k));
-    }
-  }
-
+void _test_cleanup() {
   list_cleanup(&list);
+  arena_cleanup(&ARENA_GLOBAL);
+}
 
-  return 0;
+int _test_count = 3;
+const char *_tests[] = {"_test_empty_insert", "_test_middle_insert",
+                        "_test_tail_insert"};
+
+void _test_empty_insert() {
+  list_push_int(&list, 1);
+
+  ASSERT_(list_get_ty(int, &list, 0) == 1, "The first element of a list is 1");
+}
+
+void _test_middle_insert() {
+  list_push_int(&list, 0);
+  list_push_int(&list, 1);
+  list_push_int(&list, 3);
+  list_push_int(&list, 4);
+
+  ASSERT__(list.size == 4);
+
+  int value = 2;
+  list_insert(&list, 2, &value);
+
+  ASSERT__(list.size == 5);
+
+  for (int i = 0; i < 5; i++) {
+    int v = list_get_ty(int, &list, i);
+    ASSERT(v == i, "%d == %d", v, i);
+  }
+}
+
+void _test_tail_insert() {
+  for (int i = 0; i <= 0xFF; i++)
+    list_push_int(&list, i);
+
+  int value = 0x100;
+  list_insert(&list, 0x100, &value);
+
+  for (int i = 0; i <= 0x100; i++) {
+    int v = list_get_ty(int, &list, i);
+    ASSERT(v == i, "%d == %d", v, i);
+  }
 }
