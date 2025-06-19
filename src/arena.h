@@ -1,7 +1,6 @@
 #ifndef __SPACED_H__ARENA__
 #define __SPACED_H__ARENA__
 
-#include <sanitizer/asan_interface.h>
 #include <string.h>
 
 #include "defs.h"
@@ -22,7 +21,7 @@ static void arena_init(arena_t *arena, allocator_t alloc, sz size) {
   arena->allocator = alloc;
   arena->root = allocator_alloc_ty(byte, alloc, size);
   memset(arena->root, 0xCC, size);
-  __asan_poison_memory_region(arena->root, size);
+  poison_memory_region(arena->root, size);
 
   arena->size = size;
   arena->offset = 0;
@@ -43,7 +42,7 @@ static void *arena_alloc(arena_t *arena, sz size) {
   void *ptr = arena->root + arena->offset;
   arena->offset += size;
 
-  __asan_unpoison_memory_region(ptr, size);
+  unpoison_memory_region(ptr, size);
 
   // Align the pointer correctly.
   // TODO: test if it actually speeds anything up
@@ -53,7 +52,7 @@ static void *arena_alloc(arena_t *arena, sz size) {
 }
 
 static void arena_clear(arena_t *arena) {
-  __asan_poison_memory_region(arena, arena->size);
+  poison_memory_region(arena, arena->size);
   arena->offset = 0;
 }
 

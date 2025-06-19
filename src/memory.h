@@ -1,6 +1,10 @@
 #ifndef __SPACED_H__MEMORY__
 #define __SPACED_H__MEMORY__
 
+#if defined(__SANITIZE_ADDRESS__)
+#include <sanitizer/asan_interface.h>
+#endif
+
 #include <string.h>
 
 #include "defs.h"
@@ -65,5 +69,23 @@ static allocator_t allocator_new_malloc() {
 
   return ret;
 }
+
+static void poison_memory_region(void* ptr, sz size) {
+  #if defined(__SANITIZE_ADDRESS__)
+
+  #endif
+}
+
+#if defined(__SANITIZE_ADDRESS__)
+#define poison_memory_region(ptr, sz) __asan_poison_memory_region(ptr, sz)
+#else
+#define poison_memory_region(ptr, sz)
+#endif
+
+#if defined(__SANITIZE_ADDRESS__)
+#define unpoison_memory_region(ptr, sz) __asan_unpoison_memory_region(ptr, sz)
+#else
+#define unpoison_memory_region(ptr, sz)
+#endif
 
 #endif

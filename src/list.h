@@ -26,7 +26,7 @@ static void list_init(list_t *ls, allocator_t alloc, sz entry_size) {
   // TODO(Artur): ASAN
   ls->data = allocator_alloc(alloc, entry_size * ls->_capacity);
   ls->size = 0;
-  __asan_poison_memory_region(ls->data, ls->size * entry_size);
+  poison_memory_region(ls->data, ls->size * entry_size);
 }
 
 #define list_init_ty(ty, ls, alloc) list_init(ls, alloc, sizeof(ty))
@@ -38,7 +38,7 @@ static void list_init_copy(list_t *ls, allocator_t alloc, void *data,
   ls->_capacity = entry_size * count;
   ls->data = allocator_alloc_copy(alloc, data, count * entry_size);
   ls->size = count;
-  __asan_poison_memory_region(ls->data, ls->size * entry_size);
+  poison_memory_region(ls->data, ls->size * entry_size);
 }
 
 #define list_init_copy_ty(ty, ls, alloc, data, count)                          \
@@ -63,7 +63,7 @@ static void list_push(list_t *ls, const void *data) {
     list_grow(ls);
   char *ptr = (char *)ls->data + ls->size * ls->_entry;
 
-  __asan_unpoison_memory_region(ptr, ls->_entry);
+  unpoison_memory_region(ptr, ls->_entry);
 
   memcpy(ptr, data, ls->_entry);
   ls->size++;
@@ -83,7 +83,7 @@ static void list_insert(list_t *ls, sz idx, const void *data) {
       "Insertion index must be less must be within the list (idx=%d size=%d)",
       (int)idx, (int)ls->size);
 
-  __asan_unpoison_memory_region((char *)ls->data + ls->size * ls->_entry,
+  unpoison_memory_region((char *)ls->data + ls->size * ls->_entry,
                                 ls->_entry);
 
   sz count_to_move = ls->size - idx;
