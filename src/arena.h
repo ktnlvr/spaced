@@ -10,6 +10,7 @@
 #define ARENA_DEFAULT_SIZE 0x10000
 
 typedef struct {
+  allocator_t allocator;
   byte *root;
   sz size;
   sz offset;
@@ -17,8 +18,9 @@ typedef struct {
 
 static arena_t ARENA_GLOBAL;
 
-static void arena_init(arena_t *arena, sz size) {
-  arena->root = (byte *)malloc(size);
+static void arena_init(arena_t *arena, allocator_t alloc, sz size) {
+  arena->allocator = alloc;
+  arena->root = allocator_alloc_ty(byte, alloc, size);
   memset(arena->root, 0xCC, size);
   __asan_poison_memory_region(arena->root, size);
 
@@ -27,7 +29,7 @@ static void arena_init(arena_t *arena, sz size) {
 }
 
 static void arena_init_default(arena_t *arena) {
-  arena_init(arena, ARENA_DEFAULT_SIZE);
+  arena_init(arena, allocator_new_malloc(), ARENA_DEFAULT_SIZE);
 }
 
 static void *arena_alloc(arena_t *arena, sz size) {
@@ -59,10 +61,10 @@ static void arena_cleanup(arena_t *arena) {
   if (arena->root == 0)
     PANIC_("Attempt to free an uninitialized arena");
 
+  allocator_free(arena->allocator, arena->root);
   arena->root = 0;
   arena->offset = 0;
   arena->size = 0;
-  free(arena->root);
 }
 
 static void *allocator_arena__alloc(void *arena, sz size) {
