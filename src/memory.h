@@ -26,7 +26,7 @@ static void *allocator_alloc(allocator_t allocator, sz size) {
 #define allocator_alloc_ty(ty, allocator, sz)                                  \
   (ty *)allocator_alloc(allocator, sizeof(ty) * sz)
 
-static void *allocator_alloc_copy(allocator_t allocator, void *data, sz size) {
+static void *allocator_alloc_copy(allocator_t allocator, const void *data, sz size) {
   void *ptr = allocator.alloc(allocator.allocator, size);
   memcpy(ptr, data, size);
   return ptr;
