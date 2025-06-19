@@ -54,7 +54,7 @@ static void list_grow(list_t *ls) {
   // Duplicate of Python's logic
   sz new_capacity = (ls->_capacity >> 3) + ls->_capacity + 6;
 
-  allocator_realloc(ls->_alloc, ls->data, new_capacity);
+  ls->data = allocator_realloc(ls->_alloc, ls->data, new_capacity);
   ls->_capacity = new_capacity;
 }
 
