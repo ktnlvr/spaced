@@ -69,6 +69,29 @@ static void list_push(list_t *ls, const void *data) {
   ls->size++;
 }
 
+static void list_insert(list_t *ls, sz idx, const void *data) {
+  if (ls->size == ls->_capacity)
+    list_grow(ls);
+
+  if (idx == ls->size) {
+    list_push(ls, data);
+    return;
+  }
+
+  if (idx > ls->size)
+    PANIC("Attempt to insert at %d past last index %d, denied", (int)idx,
+          (int)ls->size);
+
+  __asan_unpoison_memory_region((char *)ls->data + ls->size * ls->_entry,
+                                ls->_entry);
+
+  sz count_to_move = ls->size - idx;
+  memmove(&((char *)ls->data)[(idx + 1) * ls->_entry],
+          &((char *)ls->data)[idx * ls->_entry], count_to_move * ls->_entry);
+  memcpy(&((char *)ls->data)[idx * ls->_entry], data, ls->_entry);
+  ls->size++;
+}
+
 static void list_push_int(list_t *ls, const i32 value) {
   if (sizeof(value) != ls->_entry)
     PANIC("Pushing an int into a list with entry size %d, is that the right "
@@ -77,6 +100,15 @@ static void list_push_int(list_t *ls, const i32 value) {
 
   list_push(ls, &value);
 }
+
+static void *list_get(list_t *ls, sz idx) {
+  if (idx >= ls->size)
+    PANIC("Index %d too high, only %d elements in the list", (int)idx,
+          (int)ls->size);
+  return (void *)(&((char *)ls->data)[idx * ls->_entry]);
+}
+
+#define list_get_ty(ty, ls, idx) *(ty *)list_get(ls, idx)
 
 static void list_cleanup(list_t *ls) { allocator_free(ls->_alloc, ls->data); }
 
