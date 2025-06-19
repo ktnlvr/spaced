@@ -2,8 +2,8 @@
 #define __SPACED_H__LIST__
 
 #include <memory.h>
-#include <string.h>
 #include <sanitizer/asan_interface.h>
+#include <string.h>
 
 #include "defs.h"
 #include "memory.h"
@@ -30,6 +30,19 @@ static void list_init(list_t *ls, allocator_t alloc, sz entry_size) {
 }
 
 #define list_init_ty(ty, ls, alloc) list_init(ls, alloc, sizeof(ty))
+
+static void list_init_copy(list_t *ls, allocator_t alloc, void *data,
+                           sz entry_size, sz count) {
+  ls->_alloc = alloc;
+  ls->_entry = entry_size;
+  ls->_capacity = entry_size * count;
+  ls->data = allocator_alloc_copy(alloc, data, count * entry_size);
+  ls->size = count;
+  __asan_poison_memory_region(ls->data, ls->size * entry_size);
+}
+
+#define list_init_copy_ty(ty, ls, alloc, data, count)                          \
+  list_init_copy(ls, alloc, data, sizeof(ty), count)
 
 static void list_init_int(list_t *ls, allocator_t alloc) {
   list_init(ls, alloc, sizeof(i32));
