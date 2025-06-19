@@ -1,36 +1,29 @@
-alias b := build-sim-6502
-alias g := generate
-alias sim := run-6502-example
-alias test := run-tests
-
 default:
     just --list
 
+build-tests:
+    for file in `ls src/tests/`; do \
+        just build-test src/tests/$file build/tests/$(basename $file .c).so; \
+    done
+
+build-test filepath outpath: _build-warmup
+    @mkdir -p ./build/tests
+    clang -Isrc {{filepath}} -o {{outpath}} -fsanitize=address -std=c99 -g -lm
+
+alias b := build-sim-6502
+alias g := generate
+alias sim := run-6502-example
+
 run-client: _build-warmup
-    clang -Isrc src/executables/client.c -o ./build/client -std=c99 -g -lm -fsanitize=address -lglfw -lGL -lX11 -lpthread -lXrandr -ldl -lGLEW
+    clang -Isrc src/executables/client.c -o ./build/client -lm -fsanitize=address -lglfw -lGL -lX11 -lpthread -lXrandr -ldl -lGLEW
     ./build/client
-
-test-list: _build-warmup
-    mkdir -p ./build/test
-    clang -Isrc src/executables/test/list.c -o ./build/test/list -std=c99 -g -lm -fsanitize=address
-    python3 x.py test ./build/test/list -t ds/list
-
-test-map: _build-warmup
-    mkdir -p ./build/test
-    clang -Isrc src/executables/test/map.c -o ./build/test/map -std=c99 -g -lm -fsanitize=address
-    python3 x.py test ./build/test/map -t ds/map
-
-run-tests: _build-warmup
-    mkdir -p ./build/test
-    clang -Isrc src/executables/test/physics.c -o ./build/test/physics -std=c99 -g -lm -fsanitize=address
-    python3 x.py test ./build/test/physics -t physics/sat
 
 run-6502-example example: build-sim-6502 build-stdlib
     ./build/spaced ./build/{{example}}/main.bin
     xxd -g2 dump.bin | grep -v '0000 0000 0000 0000 0000 0000 0000 0000'
 
 _build-warmup:
-    mkdir -p ./build/
+    @mkdir -p ./build/
 
 build-sim-6502: generate _build-warmup
     clang -Isrc src/executables/sim6502.c -o ./build/spaced -std=c99 -g

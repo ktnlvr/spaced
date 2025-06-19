@@ -1,28 +1,24 @@
-#include "../../list.h"
+#include "../map.h"
+#include "../arena.h"
+
+#include <stdio.h>
 
 int main(void) {
   allocator_t alloc = allocator_new_malloc();
 
-  list_t list;
-  list_init_ty(int, &list, alloc);
+  map_t map;
+  map_init_ty(int, &map, alloc);
 
   int iters;
   scanf("%d", &iters);
 
   for (int i = 0; i < iters; i++) {
-    int push, insert, delete, retrieve;
-    scanf("%d %d %d %d", &push, &insert, &delete, &retrieve);
-
-    for (int i = 0; i < push; i++) {
-      int v;
-      scanf("%d", &v);
-      list_push(&list, &v);
-    }
-
+    int insert, delete, retrieve;
+    scanf("%d %d %d", &insert, &delete, &retrieve);
     for (int i = 0; i < insert; i++) {
       int k, v;
       scanf("%d %d", &k, &v);
-      list_insert(&list, k, &v);
+      map_insert_ty(int, &map, k, &v);
     }
 
     for (int i = 0; i < delete; i++) {
@@ -34,11 +30,16 @@ int main(void) {
     for (int i = 0; i < retrieve; i++) {
       int k;
       scanf("%d", &k);
-      printf("%d\n", list_get_ty(int, &list, k));
+      int *ptr = map_get_ty(int, &map, k);
+
+      if (ptr == 0)
+        printf("NA\n");
+      else
+        printf("%d\n", *ptr);
     }
   }
 
-  list_cleanup(&list);
+  map_cleanup(&map);
 
   return 0;
 }

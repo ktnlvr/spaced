@@ -2,8 +2,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "../../arena.h"
-#include "../../physics/sat.h"
+#include "../arena.h"
+#include "../physics/sat.h"
 
 int sat_test(int shapes, bool calculate_minimal) {
   int *vertex_count = arena_alloc_ty(int, &ARENA_GLOBAL, shapes);
@@ -41,7 +41,7 @@ int main(void) {
     fprintf(stderr, "Failed to match the test type to a mode");
   }
 
-  arena_free(&ARENA_GLOBAL);
+  arena_cleanup(&ARENA_GLOBAL);
 
   return ret;
 }
