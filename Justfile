@@ -10,6 +10,11 @@ run-client: _build-warmup
     clang -Isrc src/executables/client.c -o ./build/client -std=c99 -g -lm -fsanitize=address -lglfw -lGL -lX11 -lpthread -lXrandr -ldl -lGLEW
     ./build/client
 
+test-map: _build-warmup
+    mkdir -p ./build/test
+    clang -Isrc src/executables/test/map.c -o ./build/test/map -std=c99 -g -lm -fsanitize=address
+    python3 x.py test ./build/test/map -t ds/map
+
 run-tests: _build-warmup
     mkdir -p ./build/test
     clang -Isrc src/executables/test/physics.c -o ./build/test/physics -std=c99 -g -lm -fsanitize=address
