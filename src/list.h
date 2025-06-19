@@ -78,9 +78,10 @@ static void list_insert(list_t *ls, sz idx, const void *data) {
     return;
   }
 
-  if (idx > ls->size)
-    PANIC("Attempt to insert at %d past last index %d, denied", (int)idx,
-          (int)ls->size);
+  ASSERT(
+      idx < ls->size,
+      "Insertion index must be less must be within the list (idx=%d size=%d)",
+      (int)idx, (int)ls->size);
 
   __asan_unpoison_memory_region((char *)ls->data + ls->size * ls->_entry,
                                 ls->_entry);
@@ -93,18 +94,18 @@ static void list_insert(list_t *ls, sz idx, const void *data) {
 }
 
 static void list_push_int(list_t *ls, const i32 value) {
-  if (sizeof(value) != ls->_entry)
-    PANIC("Pushing an int into a list with entry size %d, is that the right "
-          "list?",
-          (int)ls->_entry);
+  ASSERT(sizeof(value) == ls->_entry,
+         "Size of a pushed value (%d) must match the entry size defined at "
+         "initilization (%d)",
+         value, (int)ls->_entry);
 
   list_push(ls, &value);
 }
 
 static void *list_get(list_t *ls, sz idx) {
-  if (idx >= ls->size)
-    PANIC("Index %d too high, only %d elements in the list", (int)idx,
-          (int)ls->size);
+  ASSERT(idx < ls->size, "Index %d too large (size=%d)", (int)idx,
+         (int)ls->size);
+
   return (void *)(&((char *)ls->data)[idx * ls->_entry]);
 }
 

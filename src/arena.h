@@ -33,12 +33,12 @@ static void arena_init_default(arena_t *arena) {
 }
 
 static void *arena_alloc(arena_t *arena, sz size) {
-  // TODO: replace with asserts
-  if (!arena->root)
-    PANIC_("Arena not initialized");
+  ASSERT_(arena->root != 0, "Expected arena to be initialized");
 
-  if (arena->offset + size > arena->size)
-    PANIC_("Arena out of memory");
+  ASSERT(
+      arena->offset + size < arena->size,
+      "Expected enough space in the arena (capacity=%d, busy=%d, requested=%d)",
+      (int)arena->size, (int)arena->offset, (int)size);
 
   void *ptr = arena->root + arena->offset;
   arena->offset += size;
@@ -58,8 +58,7 @@ static void arena_clear(arena_t *arena) {
 }
 
 static void arena_cleanup(arena_t *arena) {
-  if (arena->root == 0)
-    PANIC_("Attempt to free an uninitialized arena");
+  ASSERT_(arena->root != 0, "Attempt to free an uninitialized arena");
 
   allocator_free(arena->allocator, arena->root);
   arena->root = 0;
@@ -75,8 +74,6 @@ static void *allocator_arena__realloc(void *self, void *ptr, sz size) {
   arena_t *arena = (arena_t *)self;
   void *new_ptr = arena_alloc(arena, size);
   sz copy_size = size;
-  if (copy_size > arena->size)
-    PANIC_("Trying to reallocate too much.");
 
   memcpy(new_ptr, ptr, copy_size);
   return new_ptr;

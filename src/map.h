@@ -53,9 +53,10 @@ static void map_init(map_t *map, allocator_t allocator, sz entry_size) {
 #define map_init_ty(ty, map, allocator) map_init(map, allocator, sizeof(ty))
 
 static void map_insert(map_t *map, map_key_t key, void *data, sz size) {
-  if (size != map->entry_size)
-    PANIC_("Entry size mismatch, are you sure you are writing to the right "
-           "hashmap?");
+  ASSERT(size == map->entry_size,
+         "The size of an inserted entry (%d) must match the entry size defined "
+         "at compile time (%d)",
+         (int)size, (int)map->entry_size);
 
   sz idx = key % map->capacity;
   map_bucket_t *head = map__get_bucket_at(map, idx);

@@ -2,6 +2,7 @@
 #define __SPACED_H__NAMES__
 
 #include "arena.h"
+#include "defs.h"
 #include "list.h"
 #include "memory.h"
 #include <cstring>
@@ -31,10 +32,8 @@ static name_t as_name(const char *str) {
     if (strcmp(str, list_get_ty(const char *, &_name_list, i)) == 0)
       return i;
 
-  if (_name_list_is_locked)
-    PANIC("Name list locked, but the name `%s` could not be found. "
-          "Creating a new index denied.",
-          str);
+  ASSERT(!_name_list_is_locked,
+         "Name list must be unlocked to add new name `%s`", str);
 
   name_t idx = _name_list.size;
 
