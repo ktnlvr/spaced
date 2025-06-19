@@ -55,13 +55,14 @@ static void arena_clear(arena_t *arena) {
   arena->offset = 0;
 }
 
-static void arena_free(arena_t *arena) {
+static void arena_cleanup(arena_t *arena) {
   if (arena->root == 0)
     PANIC_("Attempt to free an uninitialized arena");
 
   arena->root = 0;
   arena->offset = 0;
   arena->size = 0;
+  free(arena->root);
 }
 
 static void *allocator_arena__alloc(void *arena, sz size) {
