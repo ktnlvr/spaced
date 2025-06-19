@@ -26,7 +26,7 @@ static void list_init(list_t *ls, allocator_t alloc, sz entry_size) {
   // TODO(Artur): ASAN
   ls->data = allocator_alloc(alloc, entry_size * ls->_capacity);
   ls->size = 0;
-  poison_memory_region(ls->data, ls->size * entry_size);
+  poison_memory_region(ls->data, ls->_capacity * entry_size);
 }
 
 #define list_init_ty(ty, ls, alloc) list_init(ls, alloc, sizeof(ty))
@@ -35,7 +35,7 @@ static void list_init_copy(list_t *ls, allocator_t alloc, void *data,
                            sz entry_size, sz count) {
   ls->_alloc = alloc;
   ls->_entry = entry_size;
-  ls->_capacity = entry_size * count;
+  ls->_capacity = count;
   ls->data = allocator_alloc_copy(alloc, data, count * entry_size);
   ls->size = count;
   poison_memory_region(ls->data, ls->size * entry_size);
@@ -54,8 +54,12 @@ static void list_grow(list_t *ls) {
   // Duplicate of Python's logic
   sz new_capacity = (ls->_capacity >> 3) + ls->_capacity + 6;
 
-  ls->data = allocator_realloc(ls->_alloc, ls->data, new_capacity);
+  unpoison_memory_region(ls->data, ls->_capacity * ls->_entry);
+
+  ls->data = allocator_realloc(ls->_alloc, ls->data, new_capacity * ls->_entry);
   ls->_capacity = new_capacity;
+
+  poison_memory_region(ls->data, ls->_capacity * ls->_entry);
 }
 
 static void list_push(list_t *ls, const void *data) {
@@ -83,8 +87,7 @@ static void list_insert(list_t *ls, sz idx, const void *data) {
       "Insertion index must be less must be within the list (idx=%d size=%d)",
       (int)idx, (int)ls->size);
 
-  unpoison_memory_region((char *)ls->data + ls->size * ls->_entry,
-                                ls->_entry);
+  unpoison_memory_region((char *)ls->data + ls->size * ls->_entry, ls->_entry);
 
   sz count_to_move = ls->size - idx;
   memmove(&((char *)ls->data)[(idx + 1) * ls->_entry],
