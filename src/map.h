@@ -66,11 +66,13 @@ static void map_insert(map_t *map, map_key_t key, void *data, sz size) {
     head->key = key;
     head->next = 0;
     memcpy(head + 1, data, size);
+    map->size++;
+    return;
   }
 
   map_bucket_t *current = head;
   while (true) {
-    if (current->key == key) {
+    if (current->has_data && current->key == key) {
       memcpy(current + 1, data, size);
       return;
     }
