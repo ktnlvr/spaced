@@ -8,7 +8,8 @@
 const char *vertex_src =
     "#version 330 core\n"
     "layout (location = 0) in vec2 aPos;"
-    "layout (location = 1) in vec2 aOffset;"
+    "layout (location = 1) in uint tileIndex;"
+    "layout (location = 2) in vec2 aOffset;"
     "uniform mat4 uProjection;"
     "void main() {"
     "    gl_Position = uProjection * vec4(aPos + aOffset, 0.0, 1.0);"
