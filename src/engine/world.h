@@ -87,7 +87,10 @@ static construct_t *world_spawn_construct(world_t *world,
   construct_t *construct =
       entity_ptr_as_construct(world_alloc_entity(world, ENTITY_KIND_CONSTRUCT));
 
-  construct_init(construct);
+  construct_init(construct, world->allocator);
+
+  // TODO: assert that its really ENTITY_KIND_RENDER_QUADS
+  construct->quads = render_quads_entt;
 
   return construct;
 }

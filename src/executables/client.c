@@ -48,7 +48,7 @@ static void set_projection(GLuint program, int width, int height) {
 
 int main(void) {
   allocator_t alloc = allocator_new_malloc();
-  
+
   world_t world;
   world_init(&world);
 
@@ -94,18 +94,15 @@ int main(void) {
   instance_buffer_t instances;
   instance_buffer_init(&instances, alloc, 0x1000);
 
-  instance_t instance_data[] = {{.position = vec2_new(-0.5, -0.5)},
-                                {.position = vec2_new(0.5f, -0.5f)},
-                                {.position = vec2_new(-0.5f, 0.5f)},
-                                {.position = vec2_new(0.5f, 0.5f)}};
-  int instance_count = 4;
-
   render_quads_t *quads = world_spawn_render_quads(&world, 100);
   construct_t *cons = world_spawn_construct(&world, quads);
 
-  for (int i = 0; i < 4; i++)
-    instance_buffer_push(&instances, instance_data[i]);
-  instance_buffer_flush(&instances);
+  component_t mesh;
+  component_init_mesh(&mesh, vec2i_new(0, 1));
+
+  construct_push_component(cons, mesh);
+
+  instance_buffer_flush(&quads->instances);
 
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
@@ -119,7 +116,7 @@ int main(void) {
     glClear(GL_COLOR_BUFFER_BIT);
     glUseProgram(program);
     glBindVertexArray(VAO);
-    glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, instance_count);
+    glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, 1);
 
     glfwSwapBuffers(window);
     glfwPollEvents();
