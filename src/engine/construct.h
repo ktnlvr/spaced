@@ -36,8 +36,7 @@ static void construct_push_component(construct_t *cons, component_t component) {
 
   if (cons->quads) {
     instance_t instance;
-    instance.position = vec2i_to_vec2(component.offset);
-
+    instance_init(&instance, vec2i_to_vec2(component.offset), 0);
     instance_buffer_push(&cons->quads->instances, instance);
   }
 }

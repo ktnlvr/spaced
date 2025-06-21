@@ -8,10 +8,11 @@
 const char *vertex_src =
     "#version 330 core\n"
     "layout (location = 0) in vec2 aPos;"
+    "layout (location = 1) in uint tileIndex;"
     "layout (location = 2) in vec2 aOffset;"
     "uniform mat4 uProjection;"
     "void main() {"
-    "    gl_Position = uProjection * vec4(aPos + aOffset, 0.0, 1.0);"
+    "    gl_Position = uProjection * vec4(aPos + aOffset + float(tileIndex), 0.0, 1.0);"
     "}";
 
 const char *fragment_src = "#version 330 core\n"
@@ -88,7 +89,6 @@ int main(void) {
     for (int j = -1; j <= 1; j++) {
       component_t mesh;
       component_init_mesh(&mesh, vec2i_new(i, j));
-      printf("%d %d\n", i, j);
       construct_push_component(cons, mesh);
     }
   }
