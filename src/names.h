@@ -5,7 +5,6 @@
 #include "defs.h"
 #include "list.h"
 #include "memory.h"
-#include <cstring>
 
 #ifndef NAME_ARENA_SIZE
 #define NAME_ARENA_SIZE 0x10000
@@ -38,7 +37,8 @@ static name_t as_name(const char *str) {
   name_t idx = _name_list.size;
 
   allocator_t alloc = arena_as_allocator(&_name_arena);
-  allocator_alloc_copy_ty(char, alloc, str, strlen(str));
+  char *str_copy = allocator_alloc_copy_ty(char, alloc, str, strlen(str) + 1);
+  list_push(&_name_list, &str_copy);
 
   return idx;
 }
