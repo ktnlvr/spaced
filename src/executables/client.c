@@ -47,6 +47,8 @@ static void set_projection(GLuint program, int width, int height) {
 }
 
 int main(void) {
+  allocator_t alloc = allocator_new_malloc();
+  
   world_t world;
   world_init(&world);
 
@@ -90,13 +92,16 @@ int main(void) {
   glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void *)0);
 
   instance_buffer_t instances;
-  instance_buffer_init(&instances, allocator_new_malloc(), 0x1000);
+  instance_buffer_init(&instances, alloc, 0x1000);
 
   instance_t instance_data[] = {{.position = vec2_new(-0.5, -0.5)},
                                 {.position = vec2_new(0.5f, -0.5f)},
                                 {.position = vec2_new(-0.5f, 0.5f)},
                                 {.position = vec2_new(0.5f, 0.5f)}};
   int instance_count = 4;
+
+  render_quads_t *quads = world_spawn_render_quads(&world, 100);
+  construct_t *cons = world_spawn_construct(&world, quads);
 
   for (int i = 0; i < 4; i++)
     instance_buffer_push(&instances, instance_data[i]);
