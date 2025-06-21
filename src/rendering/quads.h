@@ -8,12 +8,13 @@ static GLuint _gl_quad_vbo, _gl_quad_vao;
 static void gl_quad_init() {
   static float quad[] = {-.5, -.5, .5, -.5, -.5, .5, .5, .5};
 
+  glGenVertexArrays(1, &_gl_quad_vao);
+  glBindVertexArray(_gl_quad_vao);
+
   glGenBuffers(1, &_gl_quad_vbo);
   glBindBuffer(GL_ARRAY_BUFFER, _gl_quad_vbo);
   glBufferData(GL_ARRAY_BUFFER, sizeof(quad), quad, GL_STATIC_DRAW);
   
-  glGenVertexArrays(1, &_gl_quad_vao);
-  glBindVertexArray(_gl_quad_vao);
   glEnableVertexAttribArray(0);
   glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void *)0);
 }

@@ -14,7 +14,7 @@ static void system_render_quads(world_t *world, GLuint program, GLuint vao) {
       continue;
 
     render_quads_t *quads = entity_ptr_as_render_quads(entt);
-    glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, 1);
+    glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, quads->instances.size);
   }
 }
 

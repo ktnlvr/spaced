@@ -8,15 +8,11 @@
 #include "../vec2.h"
 
 typedef struct instance_t {
-  u16 tile_index;
-  u16 _padding;
   vec2 position;
 } instance_t;
 
 static void instance_init(instance_t *instance, vec2 position, u16 tile_index) {
-  instance->tile_index = tile_index;
   instance->position = position;
-  instance->_padding = 0;
 }
 
 typedef struct instance_buffer_t {
@@ -42,15 +38,13 @@ static void instance_buffer_init(instance_buffer_t *buffer, allocator_t alloc,
   glBindBuffer(GL_ARRAY_BUFFER, buffer->vbo);
   glBufferData(GL_ARRAY_BUFFER, sizeof(instance_t) * buffer->capacity,
                buffer->instances, GL_DYNAMIC_DRAW);
-  glEnableVertexAttribArray(1);
 
-  glVertexAttribPointer(1, 1, GL_UNSIGNED_SHORT, GL_FALSE, sizeof(instance_t),
-                        (void *)0);
-  glVertexAttribDivisor(1, 1);
-
+  glEnableVertexAttribArray(2);
   glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(instance_t),
-                        (void *)4);
+                        (void *)0);
   glVertexAttribDivisor(2, 1);
+
+  glBindVertexArray(0);
 
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
@@ -73,8 +67,6 @@ static void instance_buffer_flush(instance_buffer_t *buffer) {
     glBufferSubData(GL_ARRAY_BUFFER, offset, sizeof(instance_t),
                     &buffer->instances[i]);
   }
-
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 #endif
