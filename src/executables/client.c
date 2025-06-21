@@ -2,6 +2,7 @@
 #include <GLFW/glfw3.h>
 
 #include "../engine/world.h"
+#include "../rendering/instances.h"
 
 const char *vertex_src =
     "#version 330 core\n"
@@ -77,9 +78,6 @@ int main(void) {
 
   float quad[] = {-.5, -.5, .5, -.5, -.5, .5, .5, .5};
 
-  float positions[] = {-0.5f, -0.5f, 0.5f, -0.5f, -0.5f, 0.5f, 0.5f, 0.5f};
-  int instance_count = 4;
-
   GLuint VAO, VBO, instanceVBO;
   glGenVertexArrays(1, &VAO);
   glBindVertexArray(VAO);
@@ -91,13 +89,18 @@ int main(void) {
   glEnableVertexAttribArray(0);
   glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void *)0);
 
-  // Instance VB
-  glGenBuffers(1, &instanceVBO);
-  glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(positions), positions, GL_STATIC_DRAW);
-  glEnableVertexAttribArray(1);
-  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void *)0);
-  glVertexAttribDivisor(1, 1);
+  instance_buffer_t instances;
+  instance_buffer_init(&instances, allocator_new_malloc(), 0x1000);
+
+  instance_t instance_data[] = {{.position = vec2_new(-0.5, -0.5)},
+                                {.position = vec2_new(0.5f, -0.5f)},
+                                {.position = vec2_new(-0.5f, 0.5f)},
+                                {.position = vec2_new(0.5f, 0.5f)}};
+  int instance_count = 4;
+
+  for (int i = 0; i < 4; i++)
+    instance_buffer_push(&instances, instance_data[i]);
+  instance_buffer_flush(&instances);
 
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindVertexArray(0);

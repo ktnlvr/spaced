@@ -19,14 +19,18 @@ typedef struct {
   void *data;
 } list_t;
 
-static void list_init(list_t *ls, allocator_t alloc, sz entry_size) {
+static void list_init_with_capacity(list_t *ls, allocator_t alloc,
+                                    sz entry_size, sz capacity) {
   ls->_alloc = alloc;
   ls->_entry = entry_size;
-  ls->_capacity = LIST_DEFAULT_CAPACITY;
-  // TODO(Artur): ASAN
+  ls->_capacity = capacity;
   ls->data = allocator_alloc(alloc, entry_size * ls->_capacity);
   ls->size = 0;
   poison_memory_region(ls->data, ls->_capacity * entry_size);
+}
+
+static void list_init(list_t *ls, allocator_t alloc, sz entry_size) {
+  list_init_with_capacity(ls, alloc, entry_size, LIST_DEFAULT_CAPACITY);
 }
 
 #define list_init_ty(ty, ls, alloc) list_init(ls, alloc, sizeof(ty))
