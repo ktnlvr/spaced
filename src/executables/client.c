@@ -20,10 +20,10 @@ const char *fragment_src = "#version 330 core\n"
                            "    FragColor = vec4(0.4, 0.7, 1.0, 1.0);"
                            "}";
 
-static void set_projection(GLuint program, int width, int height) {
-  float ar = (float)width / (float)height;
+static void set_projection(GLuint program, int width, int height, float scale) {
+  float ar = scale * (float)width / (float)height;
   float left = -ar, right = ar;
-  float bottom = -1, top = 1;
+  float bottom = -scale, top = scale;
 
   float ortho[16] = {2. / (right - left),
                      0,
@@ -98,7 +98,7 @@ int main(void) {
     int width, height;
     glfwGetFramebufferSize(window, &width, &height);
     glViewport(0, 0, width, height);
-    set_projection(program, width, height);
+    set_projection(program, width, height, 7.);
 
     glClear(GL_COLOR_BUFFER_BIT);
 
