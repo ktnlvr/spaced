@@ -1,6 +1,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+#include "../engine/process.h"
 #include "../engine/world.h"
 #include "../rendering/instances.h"
 
@@ -63,6 +64,8 @@ int main(void) {
 
   glewInit();
 
+  gl_quad_init();
+
   GLuint vs = glCreateShader(GL_VERTEX_SHADER);
   glShaderSource(vs, 1, &vertex_src, NULL);
   glCompileShader(vs);
@@ -78,19 +81,6 @@ int main(void) {
   glDeleteShader(vs);
   glDeleteShader(fs);
 
-  float quad[] = {-.5, -.5, .5, -.5, -.5, .5, .5, .5};
-
-  GLuint VAO, VBO, instanceVBO;
-  glGenVertexArrays(1, &VAO);
-  glBindVertexArray(VAO);
-
-  // VB
-  glGenBuffers(1, &VBO);
-  glBindBuffer(GL_ARRAY_BUFFER, VBO);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(quad), quad, GL_STATIC_DRAW);
-  glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void *)0);
-
   instance_buffer_t instances;
   instance_buffer_init(&instances, alloc, 0x1000);
 
@@ -104,9 +94,6 @@ int main(void) {
 
   instance_buffer_flush(&quads->instances);
 
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
-  glBindVertexArray(0);
-
   while (!glfwWindowShouldClose(window)) {
     int width, height;
     glfwGetFramebufferSize(window, &width, &height);
@@ -114,17 +101,13 @@ int main(void) {
     set_projection(program, width, height);
 
     glClear(GL_COLOR_BUFFER_BIT);
-    glUseProgram(program);
-    glBindVertexArray(VAO);
-    glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, 1);
+
+    system_render_quads(&world, program, _gl_quad_vao);
 
     glfwSwapBuffers(window);
     glfwPollEvents();
   }
 
-  glDeleteBuffers(1, &VBO);
-  glDeleteBuffers(1, &instanceVBO);
-  glDeleteVertexArrays(1, &VAO);
   glDeleteProgram(program);
   glfwDestroyWindow(window);
   glfwTerminate();

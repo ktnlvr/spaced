@@ -11,6 +11,7 @@
 typedef enum {
   ENTITY_KIND_CONSTRUCT,
   ENTITY_KIND_RENDER_QUADS,
+  ENTITY_KIND_count,
 } entity_kind_t;
 
 typedef struct entity_t {
@@ -63,7 +64,9 @@ static entity_ptr_t world_alloc_entity(world_t *world, entity_kind_t kind) {
   entt->kind = kind;
   entt->chunk_position = vec2_new(0., 0.);
   entt->extents = vec2_new(0., 0.);
-  entt->next = 0;
+  entt->next = world->entities;
+  world->entities = entt;
+
   return entt;
 }
 
