@@ -58,7 +58,9 @@ void _test_collision_chain() {
 void _test_map_grow() {
   for (int i = 0; i < 100; i++)
     map_insert_ty(int, &map, i, &i);
-  ASSERT__(map.size == 100);
+
+    ASSERT__(map.size == 100);
+
   for (int i = 0; i < 100; i++)
     ASSERT__(*map_get_ty(int, &map, i) == i);
   ASSERT__(map.capacity >= map.size);
