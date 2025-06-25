@@ -1,6 +1,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+#include "../engine/input.h"
 #include "../engine/process.h"
 #include "../engine/world.h"
 #include "../rendering/context.h"
@@ -30,6 +31,9 @@ int main(void) {
 
   world_t world;
   world_init(&world);
+
+  input_t input;
+  input_init(&input);
 
   gl_quad_init();
 
@@ -64,6 +68,8 @@ int main(void) {
   while (!rendering_ctx_should_close(&ctx)) {
     rendering_ctx_frame_begin(&ctx);
     rendering_ctx_set_projection(&ctx, program, 7.);
+
+    input_tick(ctx.window, &input);
 
     system_render_quads(&world, program, _gl_quad_vao);
 
