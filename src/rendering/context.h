@@ -5,6 +5,7 @@
 #include <GLFW/glfw3.h>
 
 #include "../defs.h"
+#include "../vec2.h"
 
 typedef struct {
   i32 width, height;
@@ -53,7 +54,8 @@ static void rendering_ctx_frame_begin(rendering_ctx_t *ctx) {
   glClear(GL_COLOR_BUFFER_BIT);
 }
 
-static void rendering_ctx_set_projection(rendering_ctx_t *ctx, GLuint program, float scale) {
+static void rendering_ctx_set_projection(rendering_ctx_t *ctx, GLuint program,
+                                         float scale, vec2 at) {
   float ar = scale * (float)ctx->width / (float)ctx->height;
   float left = -ar, right = ar;
   float bottom = -scale, top = scale;
