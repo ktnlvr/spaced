@@ -3,17 +3,18 @@
 
 #include "../engine/process.h"
 #include "../engine/world.h"
+#include "../rendering/context.h"
 #include "../rendering/instances.h"
 
-const char *vertex_src =
-    "#version 330 core\n"
-    "layout (location = 0) in vec2 aPos;"
-    "layout (location = 1) in uint tileIndex;"
-    "layout (location = 2) in vec2 aOffset;"
-    "uniform mat4 uProjection;"
-    "void main() {"
-    "    gl_Position = uProjection * vec4(aPos + aOffset + float(tileIndex), 0.0, 1.0);"
-    "}";
+const char *vertex_src = "#version 330 core\n"
+                         "layout (location = 0) in vec2 aPos;"
+                         "layout (location = 1) in uint tileIndex;"
+                         "layout (location = 2) in vec2 aOffset;"
+                         "uniform mat4 uProjection;"
+                         "void main() {"
+                         "    gl_Position = uProjection * vec4(aPos + aOffset "
+                         "+ float(tileIndex), 0.0, 1.0);"
+                         "}";
 
 const char *fragment_src = "#version 330 core\n"
                            "out vec4 FragColor;"
@@ -21,49 +22,14 @@ const char *fragment_src = "#version 330 core\n"
                            "    FragColor = vec4(0.4, 0.7, 1.0, 1.0);"
                            "}";
 
-static void set_projection(GLuint program, int width, int height, float scale) {
-  float ar = scale * (float)width / (float)height;
-  float left = -ar, right = ar;
-  float bottom = -scale, top = scale;
-
-  float ortho[16] = {2. / (right - left),
-                     0,
-                     0,
-                     0,
-                     0,
-                     2. / (top - bottom),
-                     0,
-                     0,
-                     0,
-                     0,
-                     -1,
-                     0,
-                     -(right + left) / (right - left),
-                     -(top + bottom) / (top - bottom),
-                     0,
-                     1};
-
-  GLint location = glGetUniformLocation(program, "uProjection");
-  glUseProgram(program);
-  glUniformMatrix4fv(location, 1, GL_FALSE, ortho);
-}
-
 int main(void) {
   allocator_t alloc = allocator_new_malloc();
 
+  rendering_ctx_t ctx;
+  rendering_ctx_init(&ctx);
+
   world_t world;
   world_init(&world);
-
-  glfwInit();
-
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-  GLFWwindow *window = glfwCreateWindow(640, 480, "Hello, world!", 0, 0);
-  glfwMakeContextCurrent(window);
-
-  glewInit();
 
   gl_quad_init();
 
@@ -84,7 +50,7 @@ int main(void) {
 
   render_quads_t *quads = world_spawn_render_quads(&world, 100);
   construct_t *cons = world_spawn_construct(&world, quads);
-  
+
   for (int i = -1; i <= 1; i++) {
     for (int j = -1; j <= 1; j++) {
       component_t mesh;
@@ -95,23 +61,16 @@ int main(void) {
 
   instance_buffer_flush(&quads->instances);
 
-  while (!glfwWindowShouldClose(window)) {
-    int width, height;
-    glfwGetFramebufferSize(window, &width, &height);
-    glViewport(0, 0, width, height);
-    set_projection(program, width, height, 7.);
-
-    glClear(GL_COLOR_BUFFER_BIT);
+  while (!rendering_ctx_should_close(&ctx)) {
+    rendering_ctx_frame_begin(&ctx);
+    rendering_ctx_set_projection(&ctx, program, 7.);
 
     system_render_quads(&world, program, _gl_quad_vao);
 
-    glfwSwapBuffers(window);
-    glfwPollEvents();
+    rendering_ctx_frame_end(&ctx);
   }
 
-  glDeleteProgram(program);
-  glfwDestroyWindow(window);
-  glfwTerminate();
+  rendering_ctx_cleanup(&ctx);
 
   world_cleanup(&world);
 

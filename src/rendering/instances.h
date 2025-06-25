@@ -42,7 +42,7 @@ static void instance_buffer_init(instance_buffer_t *buffer, allocator_t alloc,
                buffer->instances, GL_DYNAMIC_DRAW);
 
   glEnableVertexAttribArray(1);
-  glVertexAttribPointer(1, 2, GL_UNSIGNED_INT, GL_FALSE, sizeof(instance_t),
+  glVertexAttribPointer(1, 1, GL_UNSIGNED_INT, GL_FALSE, sizeof(instance_t),
                         (void *)0);
   glVertexAttribDivisor(1, 1);
 
