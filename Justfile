@@ -1,6 +1,9 @@
 default:
     just --list
 
+cloc:
+    cloc src
+
 build-tests:
     for file in `ls src/tests/`; do \
         just build-test src/tests/$file build/tests/$(basename $file .c).so; \
