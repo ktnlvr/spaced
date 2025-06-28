@@ -8,21 +8,22 @@
 
 #include "construct.h"
 #include "entity.h"
+#include <string.h>
 
 typedef struct world_t {
   allocator_t allocator;
-  list_t entities;
+  list_t _entities;
   list_t vacant_entity_ids;
 } world_t;
 
 static void world_init(world_t *world) {
   world->allocator = allocator_new_malloc();
 
-  list_init_ty(entity_t, &world->entities, world->allocator);
+  list_init_ty(entity_t, &world->_entities, world->allocator);
   list_init_ty(entity_id_t, &world->vacant_entity_ids, world->allocator);
 }
 
-static void world_cleanup(world_t *world) { list_cleanup(&world->entities); }
+static void world_cleanup(world_t *world) { list_cleanup(&world->_entities); }
 
 static entity_id_t world_reserve_entity_id(world_t *world) {
   entity_id_t id;
@@ -31,34 +32,81 @@ static entity_id_t world_reserve_entity_id(world_t *world) {
     return id;
   }
 
-  id = world->entities.size;
-  list_push(&world->entities, &id);
+  id = world->_entities.size;
+
+  entity_t e;
+  memset(&e, 0, sizeof(entity_t));
+  e.kind = ENTITY_KIND_TOMBSTONE;
+  e.self_id = id;
+  list_push_var(&world->_entities, e);
+
   return id;
 }
 
 static entity_id_t world_spawn_entity(world_t *world) {
   entity_id_t new_id = world_reserve_entity_id(world);
-  entity_t *ptr = list_get_ty_ptr(entity_t, &world->entities, new_id);
+  u64 identity = entity_id_get_identity(new_id);
+
+  entity_t *ptr = list_get_ty_ptr(entity_t, &world->_entities, identity);
+
   memset(ptr, 0, sizeof(entity_t));
+  ptr->kind = ENTITY_KIND_TOMBSTONE;
   ptr->self_id = new_id;
   return new_id;
 }
 
 static entity_t *world_get_entity(world_t *world, entity_id_t id) {
-  entity_id_t identity = entity_id_get_identity(id);
-  if (identity > world->entities.size)
+  if (!world->_entities.size)
     return 0;
 
-  entity_t *ptr = list_get_ty_ptr(entity_t, &world->entities, identity);
+  entity_id_t identity = entity_id_get_identity(id);
+
+  if (identity > world->_entities.size)
+    return 0;
+
+  entity_t *ptr = list_get_ty_ptr(entity_t, &world->_entities, identity);
   if (ptr->self_id != id) {
-    PANIC("Attempt to locate a destroyed entity %08lX (expected gen=%03X, "
-          "found gen=%03X)",
-          id, entity_id_get_generation(id),
-          entity_id_get_generation(ptr->self_id));
+    if (ptr->kind == ENTITY_KIND_TOMBSTONE)
+      return 0;
+
+    PANIC("Ruined invariant! Entity at %016lX index %013lX is indexed by %016lX.",
+          id, entity_id_get_identity(id),
+          entity_id_get_identity(ptr->self_id));
     return 0;
   }
 
   return ptr;
+}
+
+static sz world_count_entities(world_t *world) {
+  if (world->vacant_entity_ids.size > world->_entities.size)
+    return 0;
+  return world->_entities.size - world->vacant_entity_ids.size;
+}
+
+static bool world_destroy_entity(world_t *world, entity_id_t id) {
+  if (world->vacant_entity_ids.size > world->_entities.size)
+    return false;
+
+  u64 identity = entity_id_get_identity(id);
+  u32 gen = entity_id_get_generation(id);
+  entity_t *e = list_get_ty_ptr(entity_t, &world->_entities, identity);
+  if (e->self_id != id)
+    // The element must have already been deleted
+    return false;
+
+  // Clear the entity and increment the generation now.
+  // This allows for any future indexing attempts against this
+  // specific entity to fail due to generation mismatch
+  memset(e, 0, sizeof(entity_t));
+  e->kind = ENTITY_KIND_TOMBSTONE;
+  gen = entity_id_get_generation(e->self_id);
+  identity = entity_id_get_identity(e->self_id);
+  e->self_id = entity_id_new(gen + 1, identity);
+
+  list_push_var(&world->vacant_entity_ids, e->self_id);
+
+  return true;
 }
 
 #endif

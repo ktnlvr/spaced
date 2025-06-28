@@ -21,21 +21,21 @@
 #define ASSERT__(expr)                                                         \
   do {                                                                         \
     if (!(expr))                                                               \
-      PANIC_("Asserton Failed! " #expr);                                       \
+      PANIC_("not ok!.\tAsserton Failed! " #expr);                                       \
     else                                                                       \
-      fprintf(stderr, "# %s:%d\t\t %s\tok.\n", __FILE__, __LINE__, #expr);      \
+      fprintf(stderr, "# %s:%d\t\tok.\t%s\n", __FILE__, __LINE__, #expr);      \
   } while (0)
 
 #define ASSERT_(expr, msg)                                                     \
   do {                                                                         \
     if (!(expr))                                                               \
-      PANIC_("Asserton Failed! " msg);                                         \
+      PANIC_("not ok!\tAsserton Failed! " msg);                                         \
   } while (0)
 
 #define ASSERT(expr, msg, ...)                                                 \
   do {                                                                         \
     if (!(expr))                                                               \
-      PANIC("Assertion Failed! " msg, __VA_ARGS__);                            \
+      PANIC("not ok!\tAssertion Failed! " msg, __VA_ARGS__);                            \
   } while (0)
 
 // TODO: replace builtins

@@ -29,6 +29,7 @@ static u64 entity_id_new(u32 gen, u64 id) {
 }
 
 typedef enum {
+  ENTITY_KIND_TOMBSTONE = 0,
   ENTITY_KIND_CONSTRUCT,
   ENTITY_KIND_CAMERA,
   ENTITY_KIND_count,

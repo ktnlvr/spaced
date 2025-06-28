@@ -77,6 +77,13 @@ static void list_push(list_t *ls, const void *data) {
   ls->size++;
 }
 
+#define list_push_var(ls, var)                                                 \
+  ASSERT(sizeof(var) == (ls)->_entry,                                          \
+         "Attempt to push a variable of size %ld into a list that expects "     \
+         "size %ld",                                                            \
+         sizeof(var), (ls)->_entry);                                             \
+  list_push(ls, &var)
+
 static void list_insert(list_t *ls, sz idx, const void *data) {
   if (ls->size == ls->_capacity)
     list_grow(ls);
@@ -110,8 +117,7 @@ static void list_push_int(list_t *ls, const i32 value) {
 }
 
 static void *list_get(list_t *ls, sz idx) {
-  ASSERT(idx < ls->size, "Index %d too large (size=%d)", (int)idx,
-         (int)ls->size);
+  ASSERT(idx < ls->size, "Index %ld too large (size=%ld)", idx, ls->size);
 
   return (void *)(&((char *)ls->data)[idx * ls->_entry]);
 }
@@ -120,9 +126,9 @@ static bool list_pop_tail(list_t *ls, void *out) {
   if (ls->size == 0)
     return false;
   memcpy(out, list_get(ls, ls->size - 1), ls->_entry);
+  ls->size--;
   return true;
 }
-
 
 #define list_get_ty_ptr(ty, ls, idx) (ty *)list_get(ls, idx)
 
