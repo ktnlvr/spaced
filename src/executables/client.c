@@ -2,9 +2,9 @@
 #include <GLFW/glfw3.h>
 
 #include "../engine/input.h"
-#include "../engine/process.h"
 #include "../engine/world.h"
 #include "../rendering/context.h"
+#include "../rendering/quads.h"
 #include "../rendering/instances.h"
 
 const char *vertex_src = "#version 330 core\n"
@@ -52,26 +52,21 @@ int main(void) {
   glDeleteShader(vs);
   glDeleteShader(fs);
 
-  render_quads_t *quads = world_spawn_render_quads(&world, 100);
-  construct_t *cons = world_spawn_construct(&world, quads);
+  entity_t *entt =
+      world_spawn_entity_construct(&world, vec2i_zero(), vec2_zero());
 
   for (int i = -1; i <= 1; i++) {
     for (int j = -1; j <= 1; j++) {
-      component_t mesh;
-      component_init_mesh(&mesh, vec2i_new(i, j));
-      construct_push_component(cons, mesh);
+      component_t mesh = component_new_mesh();
+      entity_construct_add_component(entt, vec2i_new(i, j), mesh);
     }
   }
 
-  instance_buffer_flush(&quads->instances);
-
   while (!rendering_ctx_should_close(&ctx)) {
     rendering_ctx_frame_begin(&ctx);
-    rendering_ctx_set_projection(&ctx, program, 7.);
+    rendering_ctx_set_projection(&ctx, program, 7., vec2_zero());
 
     input_tick(ctx.window, &input);
-
-    system_render_quads(&world, program, _gl_quad_vao);
 
     rendering_ctx_frame_end(&ctx);
   }

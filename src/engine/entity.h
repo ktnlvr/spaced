@@ -4,11 +4,11 @@
 #include "../defs.h"
 #include "../rendering/instances.h"
 #include "../vec2i.h"
-#include "construct.h"
 
 typedef u64 entity_id_t;
 
 #define ENTITY_ID_IDENTITY_MASK ((entity_id_t)0x000FFFFFFFFFFFFF)
+#define CONSTRUCT_MAXIMUM_COMPONENTS 255
 
 static u32 entity_id_get_generation(entity_id_t id) {
   u64 mask = ~ENTITY_ID_IDENTITY_MASK;
@@ -48,13 +48,25 @@ typedef struct entity_t {
     struct {
       list_t components;
       instance_buffer_t instance;
-    } construct;
+    } as_construct;
     struct {
       entity_id_t target;
       float scale;
-    } camera;
+    } as_camera;
   };
 } entity_t;
+
+typedef enum {
+  COMPONENT_KIND_MESH,
+  COMPONENT_KIND_THRUSTER,
+  COMPONENT_KIND_ENGINE,
+  COMPONENT_KIND_count,
+} component_kind_t;
+
+typedef struct {
+  component_kind_t kind;
+  vec2i offset;
+} component_t;
 
 static void entity_init_construct(entity_t *entity, allocator_t alloc,
                                   vec2i chunk_relative, vec2 chunk_local) {
@@ -63,9 +75,21 @@ static void entity_init_construct(entity_t *entity, allocator_t alloc,
   entity->chunk_relative_position = chunk_relative;
   entity->chunk_local_position = chunk_local;
 
-  list_init_ty(component_t, &entity->construct.components, alloc);
-  instance_buffer_init(&entity->construct.instance, alloc,
+  list_init_ty(component_t, &entity->as_construct.components, alloc);
+  instance_buffer_init(&entity->as_construct.instance, alloc,
                        CONSTRUCT_MAXIMUM_COMPONENTS);
+}
+
+static void entity_construct_add_component(entity_t *entity, vec2i at,
+                                           component_t component) {
+  component.offset = at;
+  list_push_var(&entity->as_construct.components, component);
+}
+
+static component_t component_new_mesh() {
+  component_t ret;
+  ret.kind = COMPONENT_KIND_MESH;
+  return ret;
 }
 
 #endif

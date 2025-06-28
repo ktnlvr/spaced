@@ -6,7 +6,6 @@
 #include "../map.h"
 #include "../vec2i.h"
 
-#include "construct.h"
 #include "entity.h"
 #include <string.h>
 
@@ -69,9 +68,9 @@ static entity_t *world_get_entity(world_t *world, entity_id_t id) {
     if (ptr->kind == ENTITY_KIND_TOMBSTONE)
       return 0;
 
-    PANIC("Ruined invariant! Entity at %016lX index %013lX is indexed by %016lX.",
-          id, entity_id_get_identity(id),
-          entity_id_get_identity(ptr->self_id));
+    PANIC(
+        "Ruined invariant! Entity at %016lX index %013lX is indexed by %016lX.",
+        id, entity_id_get_identity(id), entity_id_get_identity(ptr->self_id));
     return 0;
   }
 
@@ -107,6 +106,15 @@ static bool world_destroy_entity(world_t *world, entity_id_t id) {
   list_push_var(&world->vacant_entity_ids, e->self_id);
 
   return true;
+}
+
+static entity_t* world_spawn_entity_construct(world_t *world,
+                                                vec2i chunk_relative,
+                                                vec2 chunk_local) {
+  entity_id_t e = world_spawn_entity(world);
+  entity_t *entity = world_get_entity(world, e);
+  entity_init_construct(entity, world->allocator, chunk_relative, chunk_local);
+  return entity;
 }
 
 #endif
