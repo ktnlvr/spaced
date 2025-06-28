@@ -4,6 +4,8 @@
 #include "../rendering/quads.h"
 #include "../vec2i.h"
 
+#define CONSTRUCT_MAXIMUM_COMPONENTS 256
+
 typedef enum {
   COMPONENT_KIND_MESH,
   COMPONENT_KIND_THRUSTER,

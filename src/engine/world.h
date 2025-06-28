@@ -9,86 +9,56 @@
 #include "construct.h"
 #include "entity.h"
 
-typedef struct world_chunk_t {
-  vec2i position;
-  u32 tickets;
-} world_chunk_t;
-
 typedef struct world_t {
   allocator_t allocator;
-  entity_t *entities;
-  map_t chunk_map;
+  list_t entities;
+  list_t vacant_entity_ids;
 } world_t;
 
 static void world_init(world_t *world) {
-  allocator_t malloc = allocator_new_malloc();
-  map_init_ty(world_chunk_t, &world->chunk_map, malloc);
-  world->entities = 0;
-  world->allocator = malloc;
+  world->allocator = allocator_new_malloc();
+
+  list_init_ty(entity_t, &world->entities, world->allocator);
+  list_init_ty(entity_id_t, &world->vacant_entity_ids, world->allocator);
 }
 
-static void world_cleanup(world_t *world) { map_cleanup(&world->chunk_map); }
+static void world_cleanup(world_t *world) { list_cleanup(&world->entities); }
 
-static entity_ptr_t world_alloc_entity(world_t *world, entity_kind_t kind) {
-  sz payload = 0;
-  switch (kind) {
-  case ENTITY_KIND_CONSTRUCT:
-    payload = sizeof(construct_t);
-    break;
-  case ENTITY_KIND_RENDER_QUADS:
-    payload = sizeof(render_quads_t);
-    break;
-  default:
-    PANIC("Unkown entity kind %d", kind);
+static entity_id_t world_reserve_entity_id(world_t *world) {
+  entity_id_t id;
+  if (world->vacant_entity_ids.size > 0) {
+    list_pop_tail(&world->vacant_entity_ids, &id);
+    return id;
   }
 
-  entity_ptr_t entt = (entity_ptr_t)allocator_alloc(world->allocator,
-                                                    sizeof(entity_t) + payload);
-  entt->canary = (u64)entt & 0xFFFFFFFF;
-  entt->kind = kind;
-  entt->chunk_position = vec2_new(0., 0.);
-  entt->extents = vec2_new(0., 0.);
-  entt->next = world->entities;
-  world->entities = entt;
-
-  return entt;
+  id = world->entities.size;
+  list_push(&world->entities, &id);
+  return id;
 }
 
-#define DEFINE_ENTITY_PTR_AS(tname, knd)                                       \
-  static tname##_t *entity_ptr_as_##tname(entity_ptr_t entt) {                 \
-    ASSERT__(entt->kind == knd);                                               \
-    return (tname##_t *)(entt + 1);                                            \
+static entity_id_t world_spawn_entity(world_t *world) {
+  entity_id_t new_id = world_reserve_entity_id(world);
+  entity_t *ptr = list_get_ty_ptr(entity_t, &world->entities, new_id);
+  memset(ptr, 0, sizeof(entity_t));
+  ptr->self_id = new_id;
+  return new_id;
+}
+
+static entity_t *world_get_entity(world_t *world, entity_id_t id) {
+  entity_id_t identity = entity_id_get_identity(id);
+  if (identity > world->entities.size)
+    return 0;
+
+  entity_t *ptr = list_get_ty_ptr(entity_t, &world->entities, identity);
+  if (ptr->self_id != id) {
+    PANIC("Attempt to locate a destroyed entity %08lX (expected gen=%03X, "
+          "found gen=%03X)",
+          id, entity_id_get_generation(id),
+          entity_id_get_generation(ptr->self_id));
+    return 0;
   }
 
-DEFINE_ENTITY_PTR_AS(construct, ENTITY_KIND_CONSTRUCT)
-DEFINE_ENTITY_PTR_AS(render_quads, ENTITY_KIND_RENDER_QUADS)
-
-static entity_ptr_t to_entity_ptr(void *ptr) {
-  entity_ptr_t entt = ((entity_ptr_t)ptr - 1);
-  ASSERT__(entt->canary == ((u64)entt & 0xFFFFFFFF));
-  return entt;
-}
-
-static construct_t *world_spawn_construct(world_t *world,
-                                          render_quads_t *render_quads_entt) {
-  construct_t *construct =
-      entity_ptr_as_construct(world_alloc_entity(world, ENTITY_KIND_CONSTRUCT));
-
-  construct_init(construct, world->allocator);
-
-  // TODO: assert that its really ENTITY_KIND_RENDER_QUADS
-  construct->quads = render_quads_entt;
-
-  return construct;
-}
-
-static render_quads_t *world_spawn_render_quads(world_t *world, sz capacity) {
-  render_quads_t *quads = entity_ptr_as_render_quads(
-      world_alloc_entity(world, ENTITY_KIND_RENDER_QUADS));
-
-  render_quads_init(quads, world->allocator, capacity);
-
-  return quads;
+  return ptr;
 }
 
 #endif

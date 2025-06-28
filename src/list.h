@@ -116,7 +116,17 @@ static void *list_get(list_t *ls, sz idx) {
   return (void *)(&((char *)ls->data)[idx * ls->_entry]);
 }
 
-#define list_get_ty(ty, ls, idx) *(ty *)list_get(ls, idx)
+static bool list_pop_tail(list_t *ls, void *out) {
+  if (ls->size == 0)
+    return false;
+  memcpy(out, list_get(ls, ls->size - 1), ls->_entry);
+  return true;
+}
+
+
+#define list_get_ty_ptr(ty, ls, idx) (ty *)list_get(ls, idx)
+
+#define list_get_ty(ty, ls, idx) *list_get_ty_ptr(ty, ls, idx)
 
 static void list_cleanup(list_t *ls) { allocator_free(ls->_alloc, ls->data); }
 

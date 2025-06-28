@@ -15,6 +15,8 @@ static vec2i vec2i_new(i32 x, i32 y) {
   return ret;
 }
 
+static vec2i vec2i_zero() { return vec2i_new(0, 0); }
+
 static vec2 vec2i_to_vec2(vec2i v) {
   vec2 ret;
   ret.x = v.x;
