@@ -18,32 +18,25 @@
     abort();                                                                   \
   } while (0)
 
-#define EXPECT__(expr)                                                         \
+#define ASSERT__(expr)                                                         \
   do {                                                                         \
     if (!(expr))                                                               \
-      PANIC_("Asserton Failed! " #expr);                                                           \
+      PANIC_("Asserton Failed! " #expr);                                       \
+    else                                                                       \
+      fprintf(stderr, "# %s:%d\t\t %s\tok.\n", __FILE__, __LINE__, #expr);      \
   } while (0)
 
-#define EXPECT_(expr, msg)                                                     \
+#define ASSERT_(expr, msg)                                                     \
   do {                                                                         \
     if (!(expr))                                                               \
       PANIC_("Asserton Failed! " msg);                                         \
   } while (0)
 
-#define EXPECT(expr, msg, ...)                                                 \
+#define ASSERT(expr, msg, ...)                                                 \
   do {                                                                         \
     if (!(expr))                                                               \
       PANIC("Assertion Failed! " msg, __VA_ARGS__);                            \
   } while (0)
-
-#ifndef NDEBUG
-#define ASSERT(expr, msg, ...) EXPECT(expr, msg, __VA_ARGS__)
-#define ASSERT_(expr, msg) EXPECT_(expr, msg)
-#define ASSERT__(expr) EXPECT__(expr)
-#else
-#define ASSERT(expr, msg, ...) ;
-#define ASSERT_(expr, msg) ;
-#endif
 
 // TODO: replace builtins
 #define FLOAT32_INFTY (__builtin_inff())
