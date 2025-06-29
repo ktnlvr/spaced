@@ -18,7 +18,7 @@ alias doc := build-docs
 
 build-docs:
     mkdir -p build/docs
-    doxygen Doxyfile 
+    PROJECT_NUMBER=$(git rev-parse --short HEAD) doxygen Doxyfile 
 
 alias b := build-sim-6502
 alias g := generate
