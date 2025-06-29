@@ -25,6 +25,9 @@ jobs:
     - name: Install Doxygen
       run: sudo apt-get update && sudo apt-get install -y doxygen
 
+    - name: Install Graphviz
+      run: sudo apt-get install -y graphviz
+
     - name: Install just
       run: |
         curl -fsSL https://just.systems/install.sh | bash -s -- --to /usr/local/bin
