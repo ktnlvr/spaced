@@ -1,5 +1,5 @@
-#ifndef __SPACED_H__ARENA__
-#define __SPACED_H__ARENA__
+#ifndef __H__ARENA__
+#define __H__ARENA__
 
 #include <string.h>
 

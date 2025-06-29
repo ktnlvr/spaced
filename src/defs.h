@@ -1,5 +1,5 @@
-#ifndef __SPACED_H__DEFS__
-#define __SPACED_H__DEFS__
+#ifndef __H__DEFS__
+#define __H__DEFS__
 
 #include <stdbool.h>
 #include <stdint.h>

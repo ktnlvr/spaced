@@ -1,5 +1,5 @@
-#ifndef __SPACED_H__RENDERING_INSTANCES__
-#define __SPACED_H__RENDERING_INSTANCES__
+#ifndef __H__RENDERING_INSTANCES__
+#define __H__RENDERING_INSTANCES__
 
 #include <GL/glew.h>
 

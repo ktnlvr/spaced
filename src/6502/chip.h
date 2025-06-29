@@ -1,5 +1,5 @@
-#ifndef __SPACED_H__CHIP__
-#define __SPACED_H__CHIP__
+#ifndef __H__CHIP__
+#define __H__CHIP__
 
 #include <string.h>
 #include <stdio.h>

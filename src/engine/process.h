@@ -1,5 +1,5 @@
-#ifndef __SPACED_H__ENGINE_PROCESS__
-#define __SPACED_H__ENGINE_PROCESS__
+#ifndef __H__ENGINE_PROCESS__
+#define __H__ENGINE_PROCESS__
 
 #include "../rendering/quads.h"
 #include "entity.h"

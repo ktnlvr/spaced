@@ -1,5 +1,5 @@
-#ifndef __SPACED_H__SYSTEMS_REQUIRE__
-#define __SPACED_H__SYSTEMS_REQUIRE__
+#ifndef __H__SYSTEMS_REQUIRE__
+#define __H__SYSTEMS_REQUIRE__
 
 #include "../engine/entity.h"
 #include "../engine/input.h"

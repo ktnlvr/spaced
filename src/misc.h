@@ -1,5 +1,5 @@
-#ifndef __SPACED_H__MISC__
-#define __SPACED_H__MISC__
+#ifndef __H__MISC__
+#define __H__MISC__
 
 #include "defs.h"
 

@@ -1,5 +1,5 @@
-#ifndef __SPACED_H__NAMES__
-#define __SPACED_H__NAMES__
+#ifndef __H__NAMES__
+#define __H__NAMES__
 
 #include "arena.h"
 #include "defs.h"

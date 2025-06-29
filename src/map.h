@@ -1,5 +1,5 @@
-#ifndef __SPACED_H__MAP__
-#define __SPACED_H__MAP__
+#ifndef __H__MAP__
+#define __H__MAP__
 
 #include <string.h>
 

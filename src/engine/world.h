@@ -1,5 +1,5 @@
-#ifndef __SPACED_H__ENGINE_WORLD__
-#define __SPACED_H__ENGINE_WORLD__
+#ifndef __H__ENGINE_WORLD__
+#define __H__ENGINE_WORLD__
 
 #include "../defs.h"
 #include "../list.h"

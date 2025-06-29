@@ -1,5 +1,5 @@
-#ifndef __SPACED_H__MAT4__
-#define __SPACED_H__MAT4__
+#ifndef __H__MAT4__
+#define __H__MAT4__
 
 #include <string.h>
 

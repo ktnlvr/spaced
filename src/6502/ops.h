@@ -1,5 +1,5 @@
-#ifndef __SPACED_H__OPS__
-#define __SPACED_H__OPS__
+#ifndef __H__OPS__
+#define __H__OPS__
 
 #include "../defs.h"
 #include "./generated/lookup.h"

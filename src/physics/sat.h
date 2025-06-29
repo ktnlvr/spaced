@@ -1,5 +1,5 @@
-#ifndef __SPACED_H__SAT__
-#define __SPACED_H__SAT__
+#ifndef __H__SAT__
+#define __H__SAT__
 
 #include "../vec2.h"
 #include <alloca.h>

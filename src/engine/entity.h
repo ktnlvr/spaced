@@ -1,5 +1,5 @@
-#ifndef __SPACED_H__ENGINE_ENTITY__
-#define __SPACED_H__ENGINE_ENTITY__
+#ifndef __H__ENGINE_ENTITY__
+#define __H__ENGINE_ENTITY__
 
 #include "../defs.h"
 #include "../mat4.h"

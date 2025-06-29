@@ -1,5 +1,5 @@
-#ifndef __SPACED_H__SYSTEMS_CAMERA__
-#define __SPACED_H__SYSTEMS_CAMERA__
+#ifndef __H__SYSTEMS_CAMERA__
+#define __H__SYSTEMS_CAMERA__
 
 #include "require.h"
 

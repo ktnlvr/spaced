@@ -1,5 +1,5 @@
-#ifndef __SPACED_H__ENGINE_INPUT__
-#define __SPACED_H__ENGINE_INPUT__
+#ifndef __H__ENGINE_INPUT__
+#define __H__ENGINE_INPUT__
 
 #include <string.h>
 

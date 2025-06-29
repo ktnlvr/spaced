@@ -1,5 +1,5 @@
-#ifndef __SPACED_H__MEMORY__
-#define __SPACED_H__MEMORY__
+#ifndef __H__MEMORY__
+#define __H__MEMORY__
 
 #if defined(__SANITIZE_ADDRESS__)
 #include <sanitizer/asan_interface.h>

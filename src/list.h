@@ -1,5 +1,5 @@
-#ifndef __SPACED_H__LIST__
-#define __SPACED_H__LIST__
+#ifndef __H__LIST__
+#define __H__LIST__
 
 #include <memory.h>
 #include <sanitizer/asan_interface.h>

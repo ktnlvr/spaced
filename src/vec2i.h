@@ -1,5 +1,5 @@
-#ifndef __SPACED_H__VEC2I__
-#define __SPACED_H__VEC2I__
+#ifndef __H__VEC2I__
+#define __H__VEC2I__
 
 #include "defs.h"
 #include "vec2.h"

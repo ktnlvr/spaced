@@ -1,5 +1,5 @@
-#ifndef __SPACED_H__SYSTEMS_SCHEDULER__
-#define __SPACED_H__SYSTEMS_SCHEDULER__
+#ifndef __H__SYSTEMS_SCHEDULER__
+#define __H__SYSTEMS_SCHEDULER__
 
 #include "../list.h"
 #include "require.h"

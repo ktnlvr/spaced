@@ -1,5 +1,5 @@
-#ifndef __SPACED_H__RENDERING_QUADS__
-#define __SPACED_H__RENDERING_QUADS__
+#ifndef __H__RENDERING_QUADS__
+#define __H__RENDERING_QUADS__
 
 #include "instances.h"
 

@@ -1,5 +1,5 @@
-#ifndef __SPACED_H__RENDERING_CONTEXT__
-#define __SPACED_H__RENDERING_CONTEXT__
+#ifndef __H__RENDERING_CONTEXT__
+#define __H__RENDERING_CONTEXT__
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
