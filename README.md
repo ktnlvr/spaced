@@ -16,6 +16,7 @@ The documentation uses a lot of notation.
 - Single underscores in the beginning of a method name also means "private".
 - In the context of the `O(N)` notation, `N` and `M` are big constants with `M ≤ N` if applicable.
 - Similarly, `n` and `m` are small constants relative to `N` and `M`.
+- `//` are a functionality comment, `///` are documenting comments.
 
 ## Credits
 
