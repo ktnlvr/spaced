@@ -108,13 +108,41 @@ static bool world_destroy_entity(world_t *world, entity_id_t id) {
   return true;
 }
 
-static entity_t* world_spawn_entity_construct(world_t *world,
-                                                vec2i chunk_relative,
-                                                vec2 chunk_local) {
+static entity_t *world_spawn_entity_construct(world_t *world,
+                                              vec2i chunk_relative,
+                                              vec2 chunk_local) {
   entity_id_t e = world_spawn_entity(world);
   entity_t *entity = world_get_entity(world, e);
   entity_init_construct(entity, world->allocator, chunk_relative, chunk_local);
   return entity;
+}
+
+typedef struct {
+  world_t *world;
+  sz idx;
+  entity_t* entity;
+} entity_iter_t;
+
+static entity_iter_t world_entity_iter(world_t *world) {
+  entity_iter_t ret;
+  ret.world = world;
+  ret.entity = 0;
+  ret.idx = 0;
+  return ret;
+}
+
+static bool entity_iter_next(entity_iter_t *it) {
+    while (it->idx < it->world->_entities.size) {
+        entity_t *candidate = list_get_ty_ptr(entity_t, &it->world->_entities, it->idx);
+        it->idx++;
+        if (candidate->kind != ENTITY_KIND_TOMBSTONE) {
+            it->entity = candidate;
+            return true;
+        }
+    }
+
+    it->entity = 0;
+    return false;
 }
 
 #endif

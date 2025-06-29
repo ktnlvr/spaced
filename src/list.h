@@ -79,9 +79,9 @@ static void list_push(list_t *ls, const void *data) {
 
 #define list_push_var(ls, var)                                                 \
   ASSERT(sizeof(var) == (ls)->_entry,                                          \
-         "Attempt to push a variable of size %ld into a list that expects "     \
-         "size %ld",                                                            \
-         sizeof(var), (ls)->_entry);                                             \
+         "Attempt to push a variable of size %ld into a list that expects "    \
+         "size %ld",                                                           \
+         sizeof(var), (ls)->_entry);                                           \
   list_push(ls, &var)
 
 static void list_insert(list_t *ls, sz idx, const void *data) {
@@ -130,9 +130,9 @@ static bool list_pop_tail(list_t *ls, void *out) {
   return true;
 }
 
-#define list_get_ty_ptr(ty, ls, idx) (ty *)list_get(ls, idx)
+#define list_get_ty_ptr(ty, ls, idx) ((ty *)list_get(ls, idx))
 
-#define list_get_ty(ty, ls, idx) *list_get_ty_ptr(ty, ls, idx)
+#define list_get_ty(ty, ls, idx) (*list_get_ty_ptr(ty, ls, idx))
 
 static void list_cleanup(list_t *ls) { allocator_free(ls->_alloc, ls->data); }
 

@@ -1,13 +1,15 @@
 #include "../engine/world.h"
 #include "../arena.h"
+#include <stdio.h>
 
 static world_t world;
 
-int _test_count = 3;
+int _test_count = 4;
 const char *_tests[] = {
     "_test_identity_and_generation",
     "_test_two_entities",
     "_test_generations",
+    "_test_entity_iter",
 };
 
 void _test_setup() { world_init(&world); }
@@ -31,7 +33,6 @@ void _test_two_entities() {
 
   ASSERT__(world_count_entities(&world) == 1);
   ASSERT__(world_get_entity(&world, e1)->kind == ENTITY_KIND_TOMBSTONE);
-
 
   bool element_deleted = world_destroy_entity(&world, e1);
   ASSERT__(element_deleted);
@@ -73,4 +74,24 @@ void _test_generations() {
     ASSERT(ptr == 0, "ptr=%lX, world->entities._data=%lX", (sz)ptr,
            (sz)world._entities.data);
   }
+}
+
+void _test_entity_iter() {
+  for (int i = 0; i < 50; i++) {
+    entity_id_t e = world_spawn_entity(&world);
+    // TODO: Introduce a difference between a TOMBSTONE and an EMPTY
+    world_get_entity(&world, e)->kind = ~ENTITY_KIND_TOMBSTONE;
+  }
+
+  for (int i = 0; i < 50; i++)
+    if (i % 2)
+      world_destroy_entity(&world, i);
+
+  ASSERT__(world_count_entities(&world) == 25);
+
+  sz iters = 0;
+  for (entity_iter_t it = world_entity_iter(&world); entity_iter_next(&it);)
+    iters++;
+
+  ASSERT(iters == 25, "%ld", iters);
 }

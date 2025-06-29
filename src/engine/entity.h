@@ -48,6 +48,7 @@ typedef struct entity_t {
     struct {
       list_t components;
       instance_buffer_t instance;
+      bool is_dirty;
     } as_construct;
     struct {
       entity_id_t target;
@@ -70,20 +71,21 @@ typedef struct {
 
 static void entity_init_construct(entity_t *entity, allocator_t alloc,
                                   vec2i chunk_relative, vec2 chunk_local) {
-  entity->kind = ENTITY_KIND_CAMERA;
-  entity->self_id = 0xCC;
+  entity->kind = ENTITY_KIND_CONSTRUCT;
   entity->chunk_relative_position = chunk_relative;
   entity->chunk_local_position = chunk_local;
 
   list_init_ty(component_t, &entity->as_construct.components, alloc);
   instance_buffer_init(&entity->as_construct.instance, alloc,
                        CONSTRUCT_MAXIMUM_COMPONENTS);
+  entity->as_construct.is_dirty = false;
 }
 
 static void entity_construct_add_component(entity_t *entity, vec2i at,
                                            component_t component) {
   component.offset = at;
   list_push_var(&entity->as_construct.components, component);
+  entity->as_construct.is_dirty = true;
 }
 
 static component_t component_new_mesh() {
