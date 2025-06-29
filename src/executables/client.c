@@ -2,11 +2,11 @@
 #include <GLFW/glfw3.h>
 
 #include "../engine/input.h"
-#include "../engine/world.h"
 #include "../engine/process.h"
+#include "../engine/world.h"
 #include "../rendering/context.h"
-#include "../rendering/quads.h"
 #include "../rendering/instances.h"
+#include "../rendering/quads.h"
 
 const char *vertex_src = "#version 330 core\n"
                          "layout (location = 0) in vec2 aPos;"
@@ -63,9 +63,12 @@ int main(void) {
     }
   }
 
+  entity_t *camera =
+      world_spawn_entity_camera(&world, vec2i_zero(), vec2_zero(), 4.);
+
   while (!rendering_ctx_should_close(&ctx)) {
     rendering_ctx_frame_begin(&ctx);
-    rendering_ctx_set_projection(&ctx, program, 7., vec2_zero());
+    rendering_ctx_set_projection(&ctx, program, camera->as_camera.scale, vec2_zero());
 
     system_render_quads(&world, program, _gl_quad_vao);
 

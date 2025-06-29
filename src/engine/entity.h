@@ -94,4 +94,13 @@ static component_t component_new_mesh() {
   return ret;
 }
 
+static void entity_init_camera(entity_t *entity, allocator_t alloc,
+                                  vec2i chunk_relative, vec2 chunk_local, float scale) {
+  entity->kind = ENTITY_KIND_CAMERA;
+  entity->chunk_relative_position = chunk_relative;
+  entity->chunk_local_position = chunk_local;
+
+  entity->as_camera.scale = scale;
+}
+
 #endif
