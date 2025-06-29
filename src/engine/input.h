@@ -1,10 +1,11 @@
 #ifndef __SPACED_H__ENGINE_INPUT__
 #define __SPACED_H__ENGINE_INPUT__
 
+#include <string.h>
+
 #include <GLFW/glfw3.h>
 
-#include "../defs.h"
-#include <string.h>
+#include "../vec2i.h"
 
 typedef struct {
   i32 left, right, up, down;
@@ -29,6 +30,13 @@ static void input_tick(GLFWwindow *window, input_t *input) {
       break;
     }
   }
+}
+
+static vec2i input_vector(input_t *input) {
+  vec2i ret;
+  ret.x = input->right - input->left;
+  ret.y = input->up - input->down;
+  return ret;
 }
 
 #endif

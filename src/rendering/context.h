@@ -6,6 +6,7 @@
 
 #include "../defs.h"
 #include "../vec2.h"
+#include "../mat4.h"
 
 typedef struct {
   i32 width, height;
@@ -55,31 +56,10 @@ static void rendering_ctx_frame_begin(rendering_ctx_t *ctx) {
 }
 
 static void rendering_ctx_set_projection(rendering_ctx_t *ctx, GLuint program,
-                                         float scale, vec2 at) {
-  float ar = scale * (float)ctx->width / (float)ctx->height;
-  float left = -ar, right = ar;
-  float bottom = -scale, top = scale;
-
-  float ortho[16] = {2.f / (right - left),
-                     0,
-                     0,
-                     0,
-                     0,
-                     2.f / (top - bottom),
-                     0,
-                     0,
-                     0,
-                     0,
-                     -1,
-                     0,
-                     -(right + left) / (right - left),
-                     -(top + bottom) / (top - bottom),
-                     0,
-                     1};
-
+                                         mat4 projection) {
   GLint location = glGetUniformLocation(program, "uProjection");
   glUseProgram(program);
-  glUniformMatrix4fv(location, 1, GL_FALSE, ortho);
+  glUniformMatrix4fv(location, 1, GL_FALSE, projection.data);
 }
 
 static void rendering_ctx_frame_end(rendering_ctx_t *ctx) {

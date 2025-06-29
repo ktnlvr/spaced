@@ -7,6 +7,7 @@
 #include "../rendering/context.h"
 #include "../rendering/instances.h"
 #include "../rendering/quads.h"
+#include "../systems/camera.h"
 
 const char *vertex_src = "#version 330 core\n"
                          "layout (location = 0) in vec2 aPos;"
@@ -66,13 +67,19 @@ int main(void) {
   entity_t *camera =
       world_spawn_entity_camera(&world, vec2i_zero(), vec2_zero(), 4.);
 
+  float last_t = glfwGetTime();
   while (!rendering_ctx_should_close(&ctx)) {
     rendering_ctx_frame_begin(&ctx);
-    rendering_ctx_set_projection(&ctx, program, camera->as_camera.scale, vec2_zero());
 
-    system_render_quads(&world, program, _gl_quad_vao);
+    float t = glfwGetTime();
+    float dt = t - last_t;
+    last_t = t;
 
     input_tick(ctx.window, &input);
+
+    system_camera_move(&world, dt, &input);
+    system_render_quads(&world, program, _gl_quad_vao);
+    system_camera_set_projection(&ctx, &world, program);
 
     rendering_ctx_frame_end(&ctx);
   }

@@ -2,6 +2,8 @@
 #define __SPACED_H__ENGINE_ENTITY__
 
 #include "../defs.h"
+#include "../mat4.h"
+#include "../rendering/context.h"
 #include "../rendering/instances.h"
 #include "../vec2i.h"
 
@@ -95,12 +97,49 @@ static component_t component_new_mesh() {
 }
 
 static void entity_init_camera(entity_t *entity, allocator_t alloc,
-                                  vec2i chunk_relative, vec2 chunk_local, float scale) {
+                               vec2i chunk_relative, vec2 chunk_local,
+                               float scale) {
   entity->kind = ENTITY_KIND_CAMERA;
   entity->chunk_relative_position = chunk_relative;
   entity->chunk_local_position = chunk_local;
 
   entity->as_camera.scale = scale;
+}
+
+static mat4 entity_camera_calculate_projection(const rendering_ctx_t *ctx,
+                                               const entity_t *entity) {
+  ASSERT__(entity->kind == ENTITY_KIND_CAMERA);
+
+  float scale = entity->as_camera.scale;
+  float ar = scale * (float)ctx->width / (float)ctx->height;
+  float left = -ar, right = ar;
+  float bottom = -scale, top = scale;
+
+  vec2 v = entity->chunk_local_position;
+
+  mat4 mat = mat4_zero();
+  float data[16] = {
+      2.f / (right - left),
+      0,
+      0,
+      0,
+      0,
+      2.f / (top - bottom),
+      0,
+      0,
+      0,
+      0,
+      -1,
+      0,
+      (-(right + left) - 2.f * v.x) / (right - left),
+      (-(top + bottom) - 2.f * v.y) / (top - bottom),
+      0,
+      1,
+  };
+
+  memcpy(&mat.data, data, sizeof data);
+
+  return mat;
 }
 
 #endif

@@ -20,15 +20,18 @@ static vec2 vec2_new(float x, float y) {
   return ret;
 }
 
-static vec2 vec2_zero() {
-  return vec2_new(0., 0.);
+static vec2 vec2_zero() { return vec2_new(0., 0.); }
+
+static vec2 vec2_add(vec2 a, vec2 b) {
+  a.x += b.x;
+  a.y += b.y;
+  return a;
 }
 
 static vec2 vec2_sub(vec2 a, vec2 b) {
-  vec2 ret;
-  ret.x = a.x - b.x;
-  ret.y = a.y - b.y;
-  return ret;
+  a.x -= b.x;
+  a.y -= b.y;
+  return a;
 }
 
 static vec2 vec2_scale(vec2 a, float c) {
