@@ -13,6 +13,13 @@ build-test filepath outpath: _build-warmup
     @mkdir -p ./build/tests
     clang -Isrc {{filepath}} -o {{outpath}} -std=c99 -g -shared -lm
 
+alias doxygen := build-docs
+alias doc := build-docs
+
+build-docs:
+    mkdir -p build/docs
+    doxygen Doxyfile 
+
 alias b := build-sim-6502
 alias g := generate
 alias sim := run-6502-example
