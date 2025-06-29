@@ -3,6 +3,7 @@
 
 #include "../engine/input.h"
 #include "../engine/world.h"
+#include "../engine/process.h"
 #include "../rendering/context.h"
 #include "../rendering/quads.h"
 #include "../rendering/instances.h"
@@ -65,6 +66,8 @@ int main(void) {
   while (!rendering_ctx_should_close(&ctx)) {
     rendering_ctx_frame_begin(&ctx);
     rendering_ctx_set_projection(&ctx, program, 7., vec2_zero());
+
+    system_render_quads(&world, program, _gl_quad_vao);
 
     input_tick(ctx.window, &input);
 

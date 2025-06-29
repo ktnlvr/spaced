@@ -1,7 +1,8 @@
 #ifndef __SPACED_H__ENGINE_PROCESS__
 #define __SPACED_H__ENGINE_PROCESS__
 
-#include "construct.h"
+#include "../rendering/quads.h"
+#include "entity.h"
 #include "world.h"
 
 static void system_render_quads(world_t *world, GLuint program, GLuint vao) {
@@ -9,12 +10,29 @@ static void system_render_quads(world_t *world, GLuint program, GLuint vao) {
   glBindVertexArray(vao);
   glBindBuffer(GL_ARRAY_BUFFER, _gl_quad_vbo);
 
-  for (entity_ptr_t entt = world->entities; entt; entt = entt->next) {
-    if (entt->kind != ENTITY_KIND_RENDER_QUADS)
-      continue;
-    
-    render_quads_t *quads = entity_ptr_as_render_quads(entt);
-    glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, quads->instances.size);
+  entity_iter_t it = world_entity_iter(world);
+  while (entity_iter_next(&it)) {
+    if (it.entity->as_construct.is_dirty) {
+      instance_buffer_clear(&it.entity->as_construct.instance);
+
+      for (int i = 0; i < it.entity->as_construct.components.size; i++) {
+        component_t c =
+            list_get_ty(component_t, &it.entity->as_construct.components, i);
+
+        instance_t instance;
+        instance.position = vec2i_to_vec2(c.offset);
+        instance.tile_index = 0;
+
+        instance_buffer_push(&it.entity->as_construct.instance, instance);
+      }
+
+      instance_buffer_flush(&it.entity->as_construct.instance);
+
+      it.entity->as_construct.is_dirty = false;
+    }
+
+    glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4,
+                          it.entity->as_construct.instance.size);
   }
 }
 

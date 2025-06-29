@@ -65,6 +65,11 @@ static void instance_buffer_push(instance_buffer_t *buffer,
   list_push(&buffer->write_indices, &at);
 }
 
+static void instance_buffer_clear(instance_buffer_t *buffer) {
+  buffer->size = 0;
+  list_clear(&buffer->write_indices);
+}
+
 static void instance_buffer_flush(instance_buffer_t *buffer) {
   glBindBuffer(GL_ARRAY_BUFFER, buffer->vbo);
 

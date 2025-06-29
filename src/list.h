@@ -122,6 +122,10 @@ static void *list_get(list_t *ls, sz idx) {
   return (void *)(&((char *)ls->data)[idx * ls->_entry]);
 }
 
+#define list_get_ty_ptr(ty, ls, idx) ((ty *)list_get(ls, idx))
+
+#define list_get_ty(ty, ls, idx) (*list_get_ty_ptr(ty, ls, idx))
+
 static bool list_pop_tail(list_t *ls, void *out) {
   if (ls->size == 0)
     return false;
@@ -130,9 +134,10 @@ static bool list_pop_tail(list_t *ls, void *out) {
   return true;
 }
 
-#define list_get_ty_ptr(ty, ls, idx) ((ty *)list_get(ls, idx))
-
-#define list_get_ty(ty, ls, idx) (*list_get_ty_ptr(ty, ls, idx))
+static void list_clear(list_t* ls) {
+  poison_memory_region(ls->data, ls->entry * ls->size);
+  ls->size = 0;
+}
 
 static void list_cleanup(list_t *ls) { allocator_free(ls->_alloc, ls->data); }
 
