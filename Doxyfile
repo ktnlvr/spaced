@@ -490,15 +490,7 @@ NUM_PROC_THREADS       = 1
 # Build related configuration options
 #---------------------------------------------------------------------------
 
-# If the EXTRACT_ALL tag is set to YES, doxygen will assume all entities in
-# documentation are documented, even if no documentation was available. Private
-# class members and static file members will be hidden unless the
-# EXTRACT_PRIVATE respectively EXTRACT_STATIC tags are set to YES.
-# Note: This will also disable the warnings about undocumented members that are
-# normally produced when WARNINGS is set to YES.
-# The default value is: NO.
-
-EXTRACT_ALL            = NO
+EXTRACT_ALL            = YES
 
 # If the EXTRACT_PRIVATE tag is set to YES, all private members of a class will
 # be included in the documentation.
@@ -518,25 +510,9 @@ EXTRACT_PRIV_VIRTUAL   = NO
 
 EXTRACT_PACKAGE        = NO
 
-# If the EXTRACT_STATIC tag is set to YES, all static members of a file will be
-# included in the documentation.
-# The default value is: NO.
-
-EXTRACT_STATIC         = NO
-
-# If the EXTRACT_LOCAL_CLASSES tag is set to YES, classes (and structs) defined
-# locally in source files will be included in the documentation. If set to NO,
-# only classes defined in header files are included. Does not have any effect
-# for Java sources.
-# The default value is: YES.
+EXTRACT_STATIC         = YES
 
 EXTRACT_LOCAL_CLASSES  = YES
-
-# This flag is only useful for Objective-C code. If set to YES, local methods,
-# which are defined in the implementation section but not in the interface are
-# included in the documentation. If set to NO, only methods in the interface are
-# included.
-# The default value is: NO.
 
 EXTRACT_LOCAL_METHODS  = NO
 
@@ -2230,7 +2206,7 @@ ENABLE_PREPROCESSING   = YES
 # The default value is: NO.
 # This tag requires that the tag ENABLE_PREPROCESSING is set to YES.
 
-MACRO_EXPANSION        = NO
+MACRO_EXPANSION        = YES
 
 # If the EXPAND_ONLY_PREDEF and MACRO_EXPANSION tags are both set to YES then
 # the macro expansion is limited to the macros specified with the PREDEFINED and
