@@ -62,6 +62,9 @@ int main(void) {
   system_req_t camera_move_req = system_req_new();
   camera_move_req.input = SYSTEM_REQ_PTR_REQUIRED;
   camera_move_req.world = SYSTEM_REQ_PTR_REQUIRED;
+  camera_move_req._entity_kinds_mut = ENTITY_KIND_CAMERA;
+  system_req_ask_entity_kinds_mut(&camera_move_req, ENTITY_KIND_CAMERA);
+
   scheduler_add_system(&scheduler, camera_move_req, system_camera_move);
 
   system_req_t camera_set_projection_req = system_req_new();
@@ -69,6 +72,9 @@ int main(void) {
   camera_set_projection_req.world = SYSTEM_REQ_PTR_REQUIRED;
   camera_set_projection_req.rendering_ctx = SYSTEM_REQ_PTR_REQUIRED;
   camera_set_projection_req.system_specific_data = &program;
+  system_req_ask_entity_kinds_mut(&camera_set_projection_req,
+                                  ENTITY_KIND_CAMERA);
+
   scheduler_add_system(&scheduler, camera_set_projection_req,
                        system_camera_set_projection);
 

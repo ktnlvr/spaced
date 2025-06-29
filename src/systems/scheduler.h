@@ -53,6 +53,9 @@ static void scheduler_add_system(scheduler_t *scheduler, system_req_t req,
                                  system_runner_f runner) {
   scheduler_system_t system;
   system.runner = runner;
+  system.reqs = req;
+
+  list_push_var(&scheduler->scheduler_systems, system);
 
   scheduler->is_schedule_planned = false;
 }

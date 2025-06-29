@@ -42,8 +42,6 @@ static system_req_t system_req_new() {
 
 static void system_req_fill_in(system_req_t *target,
                                const system_req_t parent) {
-  *target = system_req_new();
-
   target->_entity_kinds_const = parent._entity_kinds_const;
   target->_entity_kinds_mut = parent._entity_kinds_mut;
   if (parent._entity_kinds_const || parent._entity_kinds_mut || target->world) {
