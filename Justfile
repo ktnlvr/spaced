@@ -20,6 +20,9 @@ build-docs:
     mkdir -p build/docs
     PROJECT_NUMBER=$(git rev-parse --short HEAD) doxygen Doxyfile 
 
+open-docs: build-docs
+    xdg-open ./build/docs/html/index.html
+
 alias b := build-sim-6502
 alias g := generate
 alias sim := run-6502-example
