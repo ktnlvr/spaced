@@ -1,4 +1,4 @@
-# spaced
+# subastra
 
 ## The Pitch
 
@@ -19,7 +19,7 @@ The documentation uses a lot of notation.
 
 ## Credits
 
-Code by Artur Roos. Available on [GitHub](https://github.com/ktnlvr/spaced). What follows is a list of technologies that are important to this project in no particular order.
+Code by Artur Roos. Available on [GitHub](https://github.com/ktnlvr/subastra). What follows is a list of technologies that are important to this project in no particular order.
 
 - [OpenGL](https://www.opengl.org/), the rendering API.
 - [cc65 Toolchain](https://cc65.github.io/), a full-on compiler/assembler/linker for the 6502.
