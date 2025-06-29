@@ -112,6 +112,7 @@ typedef struct {
   world_t *world;
   sz idx;
   entity_t *entity;
+  entity_kind_mask_t mask;
 } entity_iter_t;
 
 static entity_iter_t world_entity_iter(world_t *world) {
@@ -119,6 +120,17 @@ static entity_iter_t world_entity_iter(world_t *world) {
   ret.world = world;
   ret.entity = 0;
   ret.idx = 0;
+  ret.mask = (entity_kind_mask_t) ~(int)ENTITY_KIND_TOMBSTONE;
+  return ret;
+}
+
+static entity_iter_t world_entity_iter_masked(world_t *world,
+                                              entity_kind_mask_t mask) {
+  entity_iter_t ret;
+  ret.world = world;
+  ret.entity = 0;
+  ret.idx = 0;
+  ret.mask = mask;
   return ret;
 }
 
@@ -127,7 +139,7 @@ static bool entity_iter_next(entity_iter_t *it) {
     entity_t *candidate =
         list_get_ty_ptr(entity_t, &it->world->_entities, it->idx);
     it->idx++;
-    if (candidate->kind != ENTITY_KIND_TOMBSTONE) {
+    if (candidate->kind & it->mask) {
       it->entity = candidate;
       return true;
     }

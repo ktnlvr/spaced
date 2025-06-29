@@ -32,10 +32,12 @@ static u64 entity_id_new(u32 gen, u64 id) {
 
 typedef enum {
   ENTITY_KIND_TOMBSTONE = 0,
-  ENTITY_KIND_CONSTRUCT,
-  ENTITY_KIND_CAMERA,
-  ENTITY_KIND_count,
+  ENTITY_KIND_CONSTRUCT = 0b1,
+  ENTITY_KIND_CAMERA = 0b10,
+  ENTITY_KIND_count = 3,
 } entity_kind_t;
+
+typedef entity_kind_t entity_kind_mask_t;
 
 typedef struct entity_t {
   entity_kind_t kind;
