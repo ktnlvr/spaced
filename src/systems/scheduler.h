@@ -1,10 +1,11 @@
 #ifndef __H__SYSTEMS_SCHEDULER__
 #define __H__SYSTEMS_SCHEDULER__
 
+#include <stdio.h>
+
 #include "../list.h"
 #include "../names.h"
 #include "require.h"
-#include <stdio.h>
 
 typedef void (*system_runner_f)(system_req_t payload,
                                 allocator_t temporary_allocator);
@@ -29,7 +30,7 @@ typedef struct {
   bool is_running;
 
   system_req_t requirements;
-  list_t scheduler_systems;
+  list_t *scheduler_systems;
 } scheduler_t;
 
 static scheduler_t scheduler_new(scheduler_strategy_t strategy,
@@ -45,8 +46,13 @@ static scheduler_t scheduler_new(scheduler_strategy_t strategy,
   ret.is_ticked = false;
   ret.is_running = false;
 
-  list_init_ty(scheduler_system_t, &ret.scheduler_systems,
-               ret.persistent_allocator);
+  ret.scheduler_systems = allocator_alloc_ty(list_t, ret.persistent_allocator,
+                                             (int)SYSTEM_PHASE_count);
+
+  for (int i = 0; i < SYSTEM_PHASE_count; i++) {
+    list_init_ty(scheduler_system_t, &ret.scheduler_systems[i],
+                 ret.persistent_allocator);
+  }
 
   return ret;
 }
@@ -57,7 +63,7 @@ static void scheduler_add_system(scheduler_t *scheduler, system_req_t req,
   system.runner = runner;
   system.reqs = req;
 
-  list_push_var(&scheduler->scheduler_systems, system);
+  list_push_var(&scheduler->scheduler_systems[req.phase], system);
 
   scheduler->is_schedule_planned = false;
 }
@@ -90,19 +96,35 @@ static void scheduler_add_system(scheduler_t *scheduler, system_req_t req,
 static void scheduler_dump_dependency_graph(scheduler_t *scheduler, FILE *out) {
   fprintf(out, "digraph G {\n");
 
-  for (sz i = 0; i < scheduler->scheduler_systems.size; i++) {
-    scheduler_system_t *sys =
-        list_get_ty_ptr(scheduler_system_t, &scheduler->scheduler_systems, i);
+  for (int phase_idx = 0; phase_idx < (int)SYSTEM_PHASE_count; phase_idx++) {
+    list_t *sys_list = &scheduler->scheduler_systems[phase_idx];
 
-    name_t name = sys->reqs.name;
-    const char *name_str = name_as_str(name);
+    if (sys_list->size == 0)
+      continue;
 
-    fprintf(out, "\t%d [label=\"%s #%ld\"];\n", (int)name, name_str, i);
+    const char *sys_name_str = system_phase_to_str((system_phase_t)phase_idx);
 
-    for (sz j = 0; j < sys->reqs.depends_on_count; j++) {
-      name_t dependency = sys->reqs.depends_on[j];
-      fprintf(out, "\t%d -> %d;\n", (int)dependency, (int)name);
+    fprintf(out,
+            "\tsubgraph cluster_%d {\n\t\tlabel = \"%s\";\n\t\tstyle = "
+            "filled;\n\t\tcolor = lightgrey;\n",
+            phase_idx, sys_name_str);
+
+    for (sz i = 0; i < sys_list->size; i++) {
+      scheduler_system_t *sys =
+          list_get_ty_ptr(scheduler_system_t, sys_list, i);
+
+      name_t name = sys->reqs.name;
+      const char *name_str = name_as_str(name);
+
+      fprintf(out, "\t\t%d [label=\"%s #%ld\"];\n", (int)name, name_str, i);
+
+      for (sz j = 0; j < sys->reqs.depends_on_count; j++) {
+        name_t dependency = sys->reqs.depends_on[j];
+        fprintf(out, "\t\t%d -> %d;\n", (int)dependency, (int)name);
+      }
     }
+
+    fprintf(out, "\t}\n");
   }
 
   fprintf(out, "}\n");
@@ -137,18 +159,26 @@ static void scheduler_begin_running(scheduler_t *scheduler) {
           "The scheduler must be ticked every time before running");
   ASSERT_(!scheduler->is_running, "The scheduler is already running");
 
-  for (sz i = 0; i < scheduler->scheduler_systems.size; i++) {
-    scheduler_system_t *system =
-        list_get_ty_ptr(scheduler_system_t, &scheduler->scheduler_systems, i);
-    system_req_fill_in(&system->reqs, scheduler->requirements);
+  for (int phase_idx = 0; phase_idx < (int)SYSTEM_PHASE_count; phase_idx++) {
+    list_t *sys_list = &scheduler->scheduler_systems[phase_idx];
+
+    for (sz i = 0; i < sys_list->size; i++) {
+      scheduler_system_t *system =
+          list_get_ty_ptr(scheduler_system_t, sys_list, i);
+      system_req_fill_in(&system->reqs, scheduler->requirements);
+    }
   }
 
   scheduler->is_running = true;
 
-  for (sz i = 0; i < scheduler->scheduler_systems.size; i++) {
-    scheduler_system_t *system =
-        list_get_ty_ptr(scheduler_system_t, &scheduler->scheduler_systems, i);
-    system->runner(system->reqs, scheduler->temporary_allocator);
+  for (int phase_idx = 0; phase_idx < (int)SYSTEM_PHASE_count; phase_idx++) {
+    list_t *sys_list = &scheduler->scheduler_systems[phase_idx];
+
+    for (sz i = 0; i < sys_list->size; i++) {
+      scheduler_system_t *system =
+          list_get_ty_ptr(scheduler_system_t, sys_list, i);
+      system->runner(system->reqs, scheduler->temporary_allocator);
+    }
   }
 }
 

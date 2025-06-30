@@ -7,6 +7,38 @@
 #include "../names.h"
 #include "../rendering/context.h"
 
+typedef enum {
+  SYSTEM_PHASE_PRE_UPDATE,
+  SYSTEM_PHASE_UPDATE,
+  SYSTEM_PHASE_FIXED_UPDATE,
+  SYSTEM_PHASE_POST_UPDATE,
+  SYSTEM_PHASE_PRE_RENDER,
+  SYSTEM_PHASE_RENDER,
+  SYSTEM_PHASE_POST_RENDER,
+  SYSTEM_PHASE_count,
+} system_phase_t;
+
+static const char *system_phase_to_str(system_phase_t phase) {
+  switch (phase) {
+  case SYSTEM_PHASE_PRE_UPDATE:
+    return "PRE_UPDATE";
+  case SYSTEM_PHASE_UPDATE:
+    return "UPDATE";
+  case SYSTEM_PHASE_FIXED_UPDATE:
+    return "FIXED_UPDATE";
+  case SYSTEM_PHASE_POST_UPDATE:
+    return "POST_UPDATE";
+  case SYSTEM_PHASE_PRE_RENDER:
+    return "PRE_RENDER";
+  case SYSTEM_PHASE_RENDER:
+    return "RENDER";
+  case SYSTEM_PHASE_POST_RENDER:
+    return "RENDER";
+  default:
+    return 0;
+  }
+}
+
 /// @brief Sentinel value. Marks the system resourc as required.
 /// The scheduler must guarantee exclusive access.
 #define SYSTEM_REQ_PTR_REQUIRED ((void *)1)
@@ -17,11 +49,12 @@
 #define SYSTEM_REQ_NO_DEPS 0
 
 typedef struct {
+  system_phase_t phase;
   name_t name;
   entity_kind_mask_t _entity_kinds_mut;
   entity_kind_mask_t _entity_kinds_const;
 
-  name_t* depends_on;
+  name_t *depends_on;
   u32 depends_on_count;
 
   void *system_specific_data;
