@@ -157,6 +157,30 @@ static void scheduler_dump_dependency_graph(scheduler_t *scheduler, FILE *out) {
   fprintf(out, "}\n");
 }
 
+static void scheduler__topological_sort(allocator_t alloc,
+                                        list_t *scheduler_system_list) {
+  ASSERT__(scheduler_system_list->_entry == sizeof(scheduler_system_t));
+
+  map_t coordinate_compression_forward;
+  map_init_ty(sz, &coordinate_compression_forward, alloc);
+  map_t coordinate_compression_reverse;
+  map_init_ty(sz, &coordinate_compression_reverse, alloc);
+
+  for (sz i = 0; i < scheduler_system_list->size; i++) {
+    name_t n = list_get_ty(name_t, scheduler_system_list, i);
+    if (!map_get(&coordinate_compression_forward, n)) {
+      map_insert_ty(sz, &coordinate_compression_forward, n,
+                    &coordinate_compression_forward.size);
+    }
+  }
+
+  ASSERT__(coordinate_compression_forward.size == scheduler_system_list->size);
+  ASSERT__(coordinate_compression_reverse.size == scheduler_system_list->size);
+
+  map_cleanup(&coordinate_compression_forward);
+  map_cleanup(&coordinate_compression_reverse);
+}
+
 static void scheduler_plan(scheduler_t *scheduler) {
   ASSERT_(!scheduler->is_running,
           "Attempt to change plans while the scheduler is running");
