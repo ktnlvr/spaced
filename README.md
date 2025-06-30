@@ -10,15 +10,29 @@
 
 ## Testing
 
+## Zen
+
+Philosophical decisions. All code should align with them without exceptions.
+
+1. **If recovery is impossible a crash is warranted.** If a specific error is not possible to recover from in a given context the program should crash with appropriate message.
+2. **All sad paths should be signposted.** For every function that can crash it should have error states clearly defined (e.g. returning a null pointer). Alternatively, it should supply all precautions 
+3. **OOM is not a recoverable error.** If the program runs out of memory it can only crash. The memory is meticolously managed so running out of memory is either reaching the machine's limitations or a programmer error.
+4. **Trivially terminating loops.** All loops should have a *trivial, reachable and proveable* termiation condition. If the loop should, ideally, run forever (i.e. hash chaining), it should have a maximum iteration limit. 
+5. **No stack recursion.** A function should never recurse, partially because then its more difficult to verify.
+6. **Free memory is poisoned.** The memory handled by an allocator before being given to the program should always be poisoed. This ensures that only the memory that is intended to be used by the program is actually used.
+
 ## Conventions
 
-The code and the documentation both use a lot of specific conventions.
+The code and the documentation both use a lot of specific conventions. The project is written in C and is doing its best to avoid memory leaks, buffer overflows and so on.
 
+- The code is riddled with `ASSERT`s, they help prevent 
 - All structure types are postfixed with `_t` except algebraic ones (`vec2`, `vec2i`, `mat4`, etc).
 - Callback types are postfixed with `_f` instead of `_t`.
 - All member functions of a type are prefixed with the name without a postfix, like `scheduler_plan` for `scheduler_t` and `vec2_new` for `vec2`.
 - For a `T` there can exist constructors `T T_new(...)`, `void T_init(T* self, ...)` or both.
+- `T_new` does not allocate dynamic resources, `T_init` does.
 - If a type manages dynamic resources it will have a destructor `void T_cleanup(T* self)`.
+- If a type is a sum-type (i.e. union of structs with an enum identifier), the `_new` family will expose all possible kinds as their own constructors (`T_new_foo`, `T_new_bar` and so on).
 - Double underscores in method names usually mean "private".
 - Single underscores in the beginning of a field name also mean "private".
 - In the context of the `O(N)` notation, `N` and `M` are big constants with `M ≤ N` if applicable.
@@ -40,6 +54,7 @@ Coded by Artur Roos. Available on [GitHub](https://github.com/ktnlvr/subastra). 
 - [Clang](https://clang.llvm.org/), the best C compiler under the sun.
 - [`xxd`](https://linux.die.net/man/1/xxd), the hexdump utility.
 - [`ripgrep`](https://github.com/BurntSushi/ripgrep), a faster `grep`.
+- [`stb_image.h`](https://github.com/nothings/stb), a header-only public domain library for reading image data.
 
 The following is a looser list of things that were inspirational to the technical aspects of the project.
 
