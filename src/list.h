@@ -35,6 +35,9 @@ static void list_init(list_t *ls, allocator_t alloc, sz entry_size) {
 
 #define list_init_ty(ty, ls, alloc) list_init(ls, alloc, sizeof(ty))
 
+#define list_init_ty_with_capacity(ty, ls, alloc, capacity)                    \
+  list_init_with_capacity(ls, alloc, sizeof(ty), capacity)
+
 static void list_init_copy(list_t *ls, allocator_t alloc, void *data,
                            sz entry_size, sz count) {
   ls->_alloc = alloc;
@@ -134,7 +137,7 @@ static bool list_pop_tail(list_t *ls, void *out) {
   return true;
 }
 
-static void list_clear(list_t* ls) {
+static void list_clear(list_t *ls) {
   poison_memory_region(ls->data, ls->entry * ls->size);
   ls->size = 0;
 }

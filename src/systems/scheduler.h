@@ -71,7 +71,7 @@ static void scheduler_add_system(scheduler_t *scheduler, system_req_t req,
 #define scheduler_declare_system_with_custom_runner(                           \
     scheduler, mut, cons, system_name, runner_f, deps_on, dependency_count,    \
     ...)                                                                       \
-  name_t runner_f##_name = as_name(#runner_f);                                 \
+  name_t runner_f##_name = as_name(#system_name);                              \
   do {                                                                         \
     system_req_t __system_req = __VA_ARGS__;                                   \
     __system_req.name = runner_f##_name;                                       \
@@ -94,7 +94,15 @@ static void scheduler_add_system(scheduler_t *scheduler, system_req_t req,
       dependency_count, __VA_ARGS__)
 
 static void scheduler_dump_dependency_graph(scheduler_t *scheduler, FILE *out) {
-  fprintf(out, "digraph G {\n");
+  sz capacity = 0;
+  for (int phase_idx = 0; phase_idx < (int)SYSTEM_PHASE_count; phase_idx++)
+    capacity += scheduler->scheduler_systems[phase_idx].size;
+
+  allocator_t alloc = allocator_new_stack_alloc();
+  list_t execution_order;
+  list_init_ty_with_capacity(name_t, &execution_order, alloc, capacity);
+
+  fprintf(out, "digraph G {\n\trankdir=\"TB\";\n");
 
   for (int phase_idx = 0; phase_idx < (int)SYSTEM_PHASE_count; phase_idx++) {
     list_t *sys_list = &scheduler->scheduler_systems[phase_idx];
@@ -116,16 +124,35 @@ static void scheduler_dump_dependency_graph(scheduler_t *scheduler, FILE *out) {
       name_t name = sys->reqs.name;
       const char *name_str = name_as_str(name);
 
-      fprintf(out, "\t\t%d [label=\"%s #%ld\"];\n", (int)name, name_str, i);
+      fprintf(out, "\t\t%ld [label=\"%s #%ld\"];\n", name, name_str, i);
 
       for (sz j = 0; j < sys->reqs.depends_on_count; j++) {
         name_t dependency = sys->reqs.depends_on[j];
-        fprintf(out, "\t\t%d -> %d;\n", (int)dependency, (int)name);
+        fprintf(out, "\t\t%ld -> %ld;\n", dependency, name);
       }
+
+      list_push_var(&execution_order, name);
     }
 
     fprintf(out, "\t}\n");
   }
+
+  fprintf(out, "\tstart [color = blue, shape = Mdiamond];\n");
+  fprintf(out, "\tend [color = blue, shape = Mdiamond];\n");
+  fprintf(out, "\t{ rank=\"source\"; \"start\";}\n");
+  fprintf(out, "\t{ rank=\"sink\"; \"end\";}\n");
+
+  fprintf(out, "\tstart -> %ld [color = blue];\n",
+          list_get_ty(name_t, &execution_order, 0));
+  for (sz i = 0; i < execution_order.size - 1; i++) {
+    name_t n1 = list_get_ty(name_t, &execution_order, i);
+    name_t n2 = list_get_ty(name_t, &execution_order, i + 1);
+
+    fprintf(out, "\t%ld -> %ld [color = blue];\n", n1, n2);
+  }
+
+  fprintf(out, "\t%ld -> end [color = blue];\n",
+          list_get_ty(name_t, &execution_order, execution_order.size - 1));
 
   fprintf(out, "}\n");
 }
