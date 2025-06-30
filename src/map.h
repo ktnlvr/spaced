@@ -107,7 +107,7 @@ static bool map_should_grow(const map_t *map) {
 
 /// @brief Calculates the next capacity for the map.
 /// May return the same capacity if the @ref MAP_LOAD_FACTOR
-/// is not reached. O(1)
+/// is not reached. O(1*)
 static sz map_calculate_next_capacity(const map_t *map) {
   sz capacity = map->capacity;
   while (capacity * MAP_LOAD_FACTOR / 100 <= map->size) {
