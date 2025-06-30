@@ -36,6 +36,9 @@ The code and the documentation both use a lot of specific conventions. The proje
 - If a type is a sum-type (i.e. union of structs with an enum identifier), the `_new` family will expose all possible kinds as their own constructors (`T_new_foo`, `T_new_bar` and so on).
 - Double underscores in method names usually mean "private".
 - Single underscores in the beginning of a field name also mean "private".
+- `U_as_V` marks a reference cast, the `U` must be valid for `V` to be valid.
+- `U_to_V` marks an independent cast. The `U` is valid on its own.
+- `U_into_V` marks a destructive cast, the `U` is no longer valid and does not need to be cleaned up.
 - In the context of the `O(N)` notation, `N` and `M` are big constants with `M ≤ N` if applicable.
 - Similarly, `n` and `m` are small constants relative to `N` and `M`.
 - `//` are a functionality comment, `///` are documenting comments.
