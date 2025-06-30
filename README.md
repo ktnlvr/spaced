@@ -26,6 +26,7 @@ Philosophical decisions. All code should align with them without exceptions.
 The code and the documentation both use a lot of specific conventions. The project is written in C and is doing its best to avoid memory leaks, buffer overflows and so on.
 
 - The code is riddled with `ASSERT`s. That's good.
+- Everything is `snake_case`, unless its trying to mimic another notation. For instance, `glMessageCallback` is trying to copy OpenGL, so its an exception.
 - All structure types are postfixed with `_t` except algebraic ones (`vec2`, `vec2i`, `mat4`, etc).
 - Callback types are postfixed with `_f` instead of `_t`.
 - All member functions of a type are prefixed with the name without a postfix, like `scheduler_plan` for `scheduler_t` and `vec2_new` for `vec2`.
