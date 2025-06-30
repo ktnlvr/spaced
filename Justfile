@@ -27,7 +27,7 @@ alias g := generate
 alias sim := run-6502-example
 
 run-client: _build-warmup
-    clang -Isrc src/executables/client.c -o ./build/client -lm -fsanitize=address -lglfw -lGL -lX11 -lpthread -lXrandr -ldl -lGLEW -g -Wall -Wconversion
+    clang -Isrc src/executables/client.c -o ./build/client -lm -fsanitize=address -lglfw -lGL -lX11 -lpthread -lXrandr -ldl -lGLEW -g -Wall -Wconversion -lstb
     ./build/client
 
 run-6502-example example: build-sim-6502 build-stdlib

@@ -2,15 +2,22 @@
 #define __H__ENGINE_PROCESS__
 
 #include "../rendering/quads.h"
+
+#include "../rendering/image.h"
 #include "entity.h"
 #include "world.h"
 
-static void system_render_quads(world_t *world, GLuint program, GLuint vao) {
+static void system_render_quads(world_t *world, GLuint program, GLuint vao,
+                                image_t *image) {
   glUseProgram(program);
   glBindVertexArray(vao);
   glBindBuffer(GL_ARRAY_BUFFER, _gl_quad_vbo);
 
-  entity_iter_t it = world_entity_iter(world);
+  image_bind(image);
+  GLint sampler_location = glGetUniformLocation(program, "sSampler");
+  glUniform1i(sampler_location, 0);
+
+  entity_iter_t it = world_entity_iter_masked(world, ENTITY_KIND_CONSTRUCT);
   while (entity_iter_next(&it)) {
     if (it.entity->as_construct.is_dirty) {
       instance_buffer_clear(&it.entity->as_construct.instance);

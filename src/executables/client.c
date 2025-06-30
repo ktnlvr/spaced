@@ -1,10 +1,12 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <stdio.h>
 
 #include "../engine/input.h"
 #include "../engine/process.h"
 #include "../engine/world.h"
 #include "../rendering/context.h"
+#include "../rendering/image.h"
 #include "../rendering/instances.h"
 #include "../rendering/quads.h"
 #include "../systems/camera.h"
@@ -12,18 +14,24 @@
 
 const char *vertex_src = "#version 330 core\n"
                          "layout (location = 0) in vec2 aPos;"
-                         "layout (location = 1) in uint tileIndex;"
-                         "layout (location = 2) in vec2 aOffset;"
+                         "layout (location = 1) in vec2 texCoord;"
+                         "layout (location = 2) in uint tileIndex;"
+                         "layout (location = 3) in vec2 aOffset;"
+                         "out vec2 vTexCoord;"
                          "uniform mat4 uProjection;"
                          "void main() {"
                          "    gl_Position = uProjection * vec4(aPos + aOffset "
                          "+ float(tileIndex), 0.0, 1.0);"
+                         "    vTexCoord = texCoord;"
                          "}";
 
 const char *fragment_src = "#version 330 core\n"
                            "out vec4 FragColor;"
+                           "uniform sampler2D sSampler;"
+                           "in vec2 vTexCoord;"
                            "void main() {"
-                           "    FragColor = vec4(0.4, 0.7, 1.0, 1.0);"
+                           "    vec4 tex = texture(sSampler, vTexCoord);"
+                           "    FragColor = tex;"
                            "}";
 
 int main(void) {
@@ -42,6 +50,19 @@ int main(void) {
   input_init(&input);
 
   gl_quad_init();
+
+  // Load the tileset
+  FILE *file = fopen("./tileset.png", "rb");
+  fseek(file, 0, SEEK_END);
+  sz file_size = ftell(file);
+  rewind(file);
+  byte *file_buffer = allocator_alloc_ty(byte, alloc, file_size);
+  fread(file_buffer, file_size, file_size, file);
+  image_t tileset;
+  image_init(&tileset, alloc, file_buffer, file_size);
+  allocator_free(alloc, file_buffer);
+
+  image_bind(&tileset);
 
   GLuint vs = glCreateShader(GL_VERTEX_SHADER);
   glShaderSource(vs, 1, &vertex_src, NULL);
@@ -111,7 +132,7 @@ int main(void) {
 
     input_tick(ctx.window, &input);
 
-    system_render_quads(&world, program, _gl_quad_vao);
+    system_render_quads(&world, program, _gl_quad_vao, &tileset);
     scheduler_tick(&scheduler, dt);
     scheduler_begin_running(&scheduler);
     scheduler_end_running(&scheduler);
