@@ -13,6 +13,7 @@
 #include "../rendering/shader.h"
 #include "../systems/camera.h"
 #include "../systems/construct.h"
+#include "../systems/input.h"
 #include "../systems/scheduler.h"
 
 const char *vertex_src =
@@ -81,10 +82,11 @@ int main(void) {
 
   scheduler_declare_system(&scheduler, ENTITY_KIND_CAMERA,
                            ENTITY_KIND_MASK_EMPTY, camera_move,
-                           SYSTEM_REQ_NO_DEPS, 0,
+                           SYSTEM_REQ_NO_DEPS,
                            {
                                .input = SYSTEM_REQ_PTR_REQUIRED,
                                .world = SYSTEM_REQ_PTR_REQUIRED,
+                               .phase = SYSTEM_PHASE_PRE_RENDER,
                            });
 
   name_t deps_proj[] = {system_camera_move_name};
@@ -96,6 +98,7 @@ int main(void) {
                                .world = SYSTEM_REQ_PTR_REQUIRED,
                                .rendering_ctx = SYSTEM_REQ_PTR_REQUIRED,
                                .system_specific_data = &shader,
+                               .phase = SYSTEM_PHASE_PRE_RENDER,
                            });
 
   render_constructs_data_t render_constructs_data;
@@ -112,6 +115,16 @@ int main(void) {
                                .world = SYSTEM_REQ_PTR_REQUIRED,
                                .rendering_ctx = SYSTEM_REQ_PTR_REQUIRED,
                                .system_specific_data = &render_constructs_data,
+                               .phase = SYSTEM_PHASE_RENDER,
+                           });
+
+  scheduler_declare_system(&scheduler, ENTITY_KIND_MASK_EMPTY,
+                           ENTITY_KIND_MASK_EMPTY, process_input,
+                           SYSTEM_REQ_NO_DEPS,
+                           {
+                               .input = SYSTEM_REQ_PTR_REQUIRED,
+                               .rendering_ctx = SYSTEM_REQ_PTR_REQUIRED,
+                               .phase = SYSTEM_PHASE_PRE_UPDATE,
                            });
 
   FILE *f = fopen("./schedule.tmp.graphviz", "w+");
@@ -145,8 +158,6 @@ int main(void) {
     double t = glfwGetTime();
     double dt = t - last_t;
     last_t = t;
-
-    input_tick(ctx.window, &input);
 
     scheduler_tick(&scheduler, dt);
     scheduler_begin_running(&scheduler);

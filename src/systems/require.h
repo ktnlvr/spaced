@@ -46,7 +46,7 @@ static const char *system_phase_to_str(system_phase_t phase) {
 /// The scheduler must provide a `NULL` pointer.
 #define SYSTEM_REQ_PTR_UNUSED ((void *)0)
 
-#define SYSTEM_REQ_NO_DEPS 0
+#define SYSTEM_REQ_NO_DEPS 0, 0
 
 typedef struct {
   system_phase_t phase;
