@@ -5,6 +5,7 @@
 #include "../engine/input.h"
 #include "../engine/process.h"
 #include "../engine/world.h"
+#include "../misc.h"
 #include "../rendering/context.h"
 #include "../rendering/image.h"
 #include "../rendering/instances.h"
@@ -12,24 +13,25 @@
 #include "../systems/camera.h"
 #include "../systems/scheduler.h"
 
-const char *vertex_src = "#version 330 core\n"
-                         "layout (location = 0) in vec2 aPos;"
-                         "layout (location = 1) in vec2 texCoord;"
-                         "layout (location = 2) in uint tileIndex;"
-                         "layout (location = 3) in vec2 aOffset;"
-                         "out vec2 vTexCoord;"
-                         "uniform mat4 uProjection;"
-                         "uniform ivec2 tilemapTotal;"
-                         "uniform ivec2 tileSize;"
-                         "void main() {"
-                         "    gl_Position = uProjection * vec4(aPos + aOffset, 0.0, 1.0);"
-                         "    vec2 atlasUV = vec2(tilemapTotal);"
-                         "    vec2 singleTile = vec2(tileSize) / atlasUV;"
-                         "    uint col = tileIndex % uint(tilemapTotal.x);"
-                         "    uint row = tileIndex / uint(tilemapTotal.x);"
-                         "    vec2 cellOffset = vec2(col, row) * singleTile;"
-                         "    vTexCoord = cellOffset + texCoord * singleTile;"
-                         "}";
+const char *vertex_src =
+    "#version 330 core\n"
+    "layout (location = 0) in vec2 aPos;"
+    "layout (location = 1) in vec2 texCoord;"
+    "layout (location = 2) in uint tileIndex;"
+    "layout (location = 3) in vec2 aOffset;"
+    "out vec2 vTexCoord;"
+    "uniform mat4 uProjection;"
+    "uniform ivec2 tilemapTotal;"
+    "uniform ivec2 tileSize;"
+    "void main() {"
+    "    gl_Position = uProjection * vec4(aPos + aOffset, 0.0, 1.0);"
+    "    vec2 atlasUV = vec2(tilemapTotal);"
+    "    vec2 singleTile = vec2(tileSize) / atlasUV;"
+    "    uint col = tileIndex % uint(tilemapTotal.x);"
+    "    uint row = tileIndex / uint(tilemapTotal.x);"
+    "    vec2 cellOffset = vec2(col, row) * singleTile;"
+    "    vTexCoord = cellOffset + texCoord * singleTile;"
+    "}";
 
 const char *fragment_src = "#version 330 core\n"
                            "out vec4 FragColor;"
@@ -58,12 +60,10 @@ int main(void) {
   gl_quad_init();
 
   // Load the tileset
-  FILE *file = fopen("./tileset.png", "rb");
-  fseek(file, 0, SEEK_END);
-  sz file_size = ftell(file);
-  rewind(file);
-  byte *file_buffer = allocator_alloc_ty(byte, alloc, file_size);
-  fread(file_buffer, file_size, file_size, file);
+  sz file_size;
+  void *file_buffer =
+      read_binary_file(alloc, "./assets/tileset.png", &file_size);
+
   image_t tileset;
   image_init(&tileset, alloc, file_buffer, file_size);
   allocator_free(alloc, file_buffer);
