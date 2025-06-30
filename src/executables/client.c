@@ -12,6 +12,7 @@
 #include "../rendering/quads.h"
 #include "../rendering/shader.h"
 #include "../systems/camera.h"
+#include "../systems/construct.h"
 #include "../systems/scheduler.h"
 
 const char *vertex_src =
@@ -86,7 +87,7 @@ int main(void) {
                                .world = SYSTEM_REQ_PTR_REQUIRED,
                            });
 
-  name_t deps[] = {system_camera_move_name};
+  name_t deps_proj[] = {system_camera_move_name};
   scheduler_declare_system(&scheduler, ENTITY_KIND_CAMERA,
                            ENTITY_KIND_MASK_EMPTY, camera_set_projection, deps,
                            {
@@ -94,6 +95,22 @@ int main(void) {
                                .world = SYSTEM_REQ_PTR_REQUIRED,
                                .rendering_ctx = SYSTEM_REQ_PTR_REQUIRED,
                                .system_specific_data = &shader,
+                           });
+
+  render_constructs_data_t render_constructs_data;
+  render_constructs_data.image = &tileset;
+  render_constructs_data.program = shader.gl_program;
+  render_constructs_data.vao = _gl_quad_vao;
+
+  name_t deps_render_constructs[] = {system_camera_set_projection_name};
+  scheduler_declare_system(&scheduler, ENTITY_KIND_CONSTRUCT,
+                           ENTITY_KIND_MASK_EMPTY, render_constructs,
+                           deps_render_constructs,
+                           {
+                               .input = SYSTEM_REQ_PTR_REQUIRED,
+                               .world = SYSTEM_REQ_PTR_REQUIRED,
+                               .rendering_ctx = SYSTEM_REQ_PTR_REQUIRED,
+                               .system_specific_data = &render_constructs_data,
                            });
 
   scheduler_plan(&scheduler);
@@ -127,7 +144,6 @@ int main(void) {
 
     input_tick(ctx.window, &input);
 
-    system_render_quads(&world, shader.gl_program, _gl_quad_vao, &tileset);
     scheduler_tick(&scheduler, dt);
     scheduler_begin_running(&scheduler);
     scheduler_end_running(&scheduler);

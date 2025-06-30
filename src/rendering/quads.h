@@ -22,13 +22,4 @@ static void gl_quad_init() {
   glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *)(sizeof(float) * 2));
 }
 
-typedef struct {
-  instance_buffer_t instances;
-} render_quads_t;
-
-static void render_quads_init(render_quads_t *quads, allocator_t alloc,
-                              sz capacity) {
-  instance_buffer_init(&quads->instances, alloc, capacity);
-}
-
 #endif
