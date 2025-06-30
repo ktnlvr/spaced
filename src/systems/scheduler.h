@@ -88,23 +88,24 @@ static void scheduler_add_system(scheduler_t *scheduler, system_req_t req,
       dependency_count, __VA_ARGS__)
 
 static void scheduler_dump_dependency_graph(scheduler_t *scheduler, FILE *out) {
-  fprintf(out, "digraph G {");
+  fprintf(out, "digraph G {\n");
 
   for (sz i = 0; i < scheduler->scheduler_systems.size; i++) {
     scheduler_system_t *sys =
         list_get_ty_ptr(scheduler_system_t, &scheduler->scheduler_systems, i);
 
     name_t name = sys->reqs.name;
+    const char *name_str = name_as_str(name);
 
-    fprintf(out, "%d;", (int)name);
+    fprintf(out, "\t%d [label=\"%s #%ld\"];\n", (int)name, name_str, i);
 
     for (sz j = 0; j < sys->reqs.depends_on_count; j++) {
       name_t dependency = sys->reqs.depends_on[j];
-      fprintf(out, "%d -> %d;", (int)dependency, (int)name);
+      fprintf(out, "\t%d -> %d;\n", (int)dependency, (int)name);
     }
   }
 
-  fprintf(out, "}");
+  fprintf(out, "}\n");
 }
 
 static void scheduler_plan(scheduler_t *scheduler) {
