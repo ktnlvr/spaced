@@ -1,5 +1,7 @@
 # subastra
 
+![website](https://badges.cucumberstudio.com/website?url=https%3A%2F%2Fsubastra.ktnlvr.dev)
+
 ## The Pitch
 
 ## Getting Started
@@ -8,19 +10,24 @@
 
 ## Testing
 
-## Notation
+## Conventions
 
-The documentation uses a lot of notation.
+The code and the documentation both use a lot of specific conventions.
 
+- All structure types are postfixed with `_t` except algebraic ones (`vec2`, `vec2i`, `mat4`, etc).
+- Callback types are postfixed with `_f` instead of `_t`.
+- All member functions of a type are prefixed with the name without a postfix, like `scheduler_plan` for `scheduler_t` and `vec2_new` for `vec2`.
+- For a `T` there can exist constructors `T T_new(...)`, `void T_init(T* self, ...)` or both.
+- If a type manages dynamic resources it will have a destructor `void T_cleanup(T* self)`.
 - Double underscores in method names usually mean "private".
-- Single underscores in the beginning of a method name also means "private".
+- Single underscores in the beginning of a field name also mean "private".
 - In the context of the `O(N)` notation, `N` and `M` are big constants with `M ≤ N` if applicable.
 - Similarly, `n` and `m` are small constants relative to `N` and `M`.
 - `//` are a functionality comment, `///` are documenting comments.
 
 ## Credits
 
-Code by Artur Roos. Available on [GitHub](https://github.com/ktnlvr/subastra). What follows is a list of technologies that are important to this project in no particular order.
+Coded by Artur Roos. Available on [GitHub](https://github.com/ktnlvr/subastra). What follows is a list of technologies that are important to this project in no particular order.
 
 - [OpenGL](https://www.opengl.org/), the rendering API.
 - [cc65 Toolchain](https://cc65.github.io/), a full-on compiler/assembler/linker for the 6502.
