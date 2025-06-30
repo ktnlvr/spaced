@@ -4,12 +4,18 @@
 #include "../engine/entity.h"
 #include "../engine/input.h"
 #include "../engine/world.h"
+#include "../names.h"
 #include "../rendering/context.h"
 
+/// @brief Sentinel value. Marks the system resourc as required.
+/// The scheduler must guarantee exclusive access.
 #define SYSTEM_REQ_PTR_REQUIRED ((void *)1)
-#define SYSTEM_REQ_PTR_AVAILABLE ((void *)0)
+/// @brief Sentinel value. Marks the system resource as unused.
+/// The scheduler must provide a `NULL` pointer.
+#define SYSTEM_REQ_PTR_UNUSED ((void *)0)
 
 typedef struct {
+  name_t name;
   entity_kind_mask_t _entity_kinds_mut;
   entity_kind_mask_t _entity_kinds_const;
 
@@ -69,19 +75,17 @@ static void system_req_fill_in(system_req_t *target,
   target->fixed_delta_time = parent.fixed_delta_time;
 }
 
-static void
-system_req_ask_entity_kinds_const(system_req_t *req,
-                                  entity_kind_mask_t entity_kind_mask) {
+static void system_req_entity_kinds_const(system_req_t *req,
+                                          entity_kind_mask_t entity_kind_mask) {
   req->_entity_kinds_const =
       (entity_kind_mask_t)((int)req->_entity_kinds_mut | (int)entity_kind_mask);
 }
 
-static void
-system_req_ask_entity_kinds_mut(system_req_t *req,
-                                entity_kind_mask_t entity_kind_mask) {
+static void system_req_entity_kinds_mut(system_req_t *req,
+                                        entity_kind_mask_t entity_kind_mask) {
   req->_entity_kinds_mut =
       (entity_kind_mask_t)((int)req->_entity_kinds_mut | (int)entity_kind_mask);
-  system_req_ask_entity_kinds_const(req, entity_kind_mask);
+  system_req_entity_kinds_const(req, entity_kind_mask);
 }
 
 #endif

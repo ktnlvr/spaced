@@ -2,6 +2,7 @@
 #define __H__SYSTEMS_SCHEDULER__
 
 #include "../list.h"
+#include "../names.h"
 #include "require.h"
 
 typedef void (*system_runner_f)(system_req_t payload,
@@ -59,6 +60,28 @@ static void scheduler_add_system(scheduler_t *scheduler, system_req_t req,
 
   scheduler->is_schedule_planned = false;
 }
+
+#define scheduler_declare_system_with_custom_runner(                           \
+    scheduler, mut, cons, system_name, runner_f, depends_on, ...)              \
+  name_t runner_f##_name = as_name(#runner_f);                                 \
+  do {                                                                         \
+    system_req_t __system_req = __VA_ARGS__;                                   \
+    __system_req.name = runner_f##_name;                                       \
+    system_req_entity_kinds_const(&__system_req, cons);                        \
+    system_req_entity_kinds_mut(&__system_req, mut);                           \
+    scheduler_add_system(scheduler, __system_req, runner_f);                   \
+  } while (0)
+
+/// @brief Defines a new system with the name `system_name`
+/// that depends on the systems with the names from `depends_on`,
+/// and requires read only access to `cons` and mutable access to `mut`.
+/// Adds the system to the `scheduler`.
+/// @memberof scheduler_t
+#define scheduler_declare_system(scheduler, mut, cons, system_name,            \
+                                 depends_on, ...)                              \
+  scheduler_declare_system_with_custom_runner(                                 \
+      scheduler, mut, cons, system_name, system_##system_name, depends_on,     \
+      __VA_ARGS__)
 
 static void scheduler_plan(scheduler_t *scheduler) {
   ASSERT_(!scheduler->is_running,
