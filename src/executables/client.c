@@ -62,15 +62,17 @@ int main(void) {
       scheduler_new(SCHEDULER_STRATEGY_RANDOM, allocator_new_malloc(),
                     allocator_new_malloc());
 
-  scheduler_declare_system(&scheduler, ENTITY_KIND_CAMERA, 0, camera_move, 0,
+  scheduler_declare_system(&scheduler, ENTITY_KIND_CAMERA,
+                           ENTITY_KIND_MASK_EMPTY, camera_move,
+                           SYSTEM_REQ_NO_DEPS,
                            {
                                .input = SYSTEM_REQ_PTR_REQUIRED,
                                .world = SYSTEM_REQ_PTR_REQUIRED,
                            });
 
   name_t deps[] = {system_camera_move_name};
-  scheduler_declare_system(&scheduler, ENTITY_KIND_CAMERA, 0,
-                           camera_set_projection, deps,
+  scheduler_declare_system(&scheduler, ENTITY_KIND_CAMERA,
+                           ENTITY_KIND_MASK_EMPTY, camera_set_projection, deps,
                            {
                                .input = SYSTEM_REQ_PTR_REQUIRED,
                                .world = SYSTEM_REQ_PTR_REQUIRED,

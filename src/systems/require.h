@@ -14,6 +14,8 @@
 /// The scheduler must provide a `NULL` pointer.
 #define SYSTEM_REQ_PTR_UNUSED ((void *)0)
 
+#define SYSTEM_REQ_NO_DEPS 0
+
 typedef struct {
   name_t name;
   entity_kind_mask_t _entity_kinds_mut;
