@@ -31,6 +31,7 @@ int main(void) {
 
   rendering_ctx_t ctx;
   rendering_ctx_init(&ctx);
+  rendering_ctx_show_window(&ctx);
 
   world_t world;
   world_init(&world);

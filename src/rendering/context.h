@@ -32,6 +32,7 @@ static void rendering_ctx_init(rendering_ctx_t *ctx) {
 
   glfwInit();
 
+  glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -43,6 +44,10 @@ static void rendering_ctx_init(rendering_ctx_t *ctx) {
 
   glEnable(GL_DEBUG_OUTPUT);
   glDebugMessageCallback(glMessageCallback, 0);
+}
+
+static void rendering_ctx_show_window(rendering_ctx_t* ctx) {
+  glfwShowWindow(ctx->window);
 }
 
 static bool rendering_ctx_should_close(rendering_ctx_t *ctx) {
