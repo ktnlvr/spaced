@@ -21,6 +21,9 @@ typedef struct {
   entity_kind_mask_t _entity_kinds_mut;
   entity_kind_mask_t _entity_kinds_const;
 
+  name_t* depends_on;
+  u32 depends_on_count;
+
   void *system_specific_data;
   world_t *world;
   input_t *input;

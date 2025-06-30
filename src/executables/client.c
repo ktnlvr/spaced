@@ -81,7 +81,7 @@ int main(void) {
 
   scheduler_declare_system(&scheduler, ENTITY_KIND_CAMERA,
                            ENTITY_KIND_MASK_EMPTY, camera_move,
-                           SYSTEM_REQ_NO_DEPS,
+                           SYSTEM_REQ_NO_DEPS, 0,
                            {
                                .input = SYSTEM_REQ_PTR_REQUIRED,
                                .world = SYSTEM_REQ_PTR_REQUIRED,
@@ -89,7 +89,8 @@ int main(void) {
 
   name_t deps_proj[] = {system_camera_move_name};
   scheduler_declare_system(&scheduler, ENTITY_KIND_CAMERA,
-                           ENTITY_KIND_MASK_EMPTY, camera_set_projection, deps,
+                           ENTITY_KIND_MASK_EMPTY, camera_set_projection,
+                           deps_proj, 1,
                            {
                                .input = SYSTEM_REQ_PTR_REQUIRED,
                                .world = SYSTEM_REQ_PTR_REQUIRED,
@@ -102,10 +103,10 @@ int main(void) {
   render_constructs_data.program = shader.gl_program;
   render_constructs_data.vao = _gl_quad_vao;
 
-  name_t deps_render_constructs[] = {system_camera_set_projection_name};
+  name_t deps_render_constructs[] = {system_camera_move_name};
   scheduler_declare_system(&scheduler, ENTITY_KIND_CONSTRUCT,
                            ENTITY_KIND_MASK_EMPTY, render_constructs,
-                           deps_render_constructs,
+                           deps_render_constructs, 1,
                            {
                                .input = SYSTEM_REQ_PTR_REQUIRED,
                                .world = SYSTEM_REQ_PTR_REQUIRED,
@@ -113,7 +114,10 @@ int main(void) {
                                .system_specific_data = &render_constructs_data,
                            });
 
+  FILE *f = fopen("./schedule.tmp.graphviz", "w+");
   scheduler_plan(&scheduler);
+  scheduler_dump_dependency_graph(&scheduler, f);
+  fclose(f);
 
   system_req_t reqs = system_req_new();
   reqs.input = &input;

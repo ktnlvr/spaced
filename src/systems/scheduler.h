@@ -4,6 +4,7 @@
 #include "../list.h"
 #include "../names.h"
 #include "require.h"
+#include <stdio.h>
 
 typedef void (*system_runner_f)(system_req_t payload,
                                 allocator_t temporary_allocator);
@@ -62,11 +63,14 @@ static void scheduler_add_system(scheduler_t *scheduler, system_req_t req,
 }
 
 #define scheduler_declare_system_with_custom_runner(                           \
-    scheduler, mut, cons, system_name, runner_f, depends_on, ...)              \
+    scheduler, mut, cons, system_name, runner_f, deps_on, dependency_count,    \
+    ...)                                                                       \
   name_t runner_f##_name = as_name(#runner_f);                                 \
   do {                                                                         \
     system_req_t __system_req = __VA_ARGS__;                                   \
     __system_req.name = runner_f##_name;                                       \
+    __system_req.depends_on = deps_on;                                         \
+    __system_req.depends_on_count = dependency_count;                          \
     system_req_entity_kinds_const(&__system_req, cons);                        \
     system_req_entity_kinds_mut(&__system_req, mut);                           \
     scheduler_add_system(scheduler, __system_req, runner_f);                   \
@@ -78,17 +82,36 @@ static void scheduler_add_system(scheduler_t *scheduler, system_req_t req,
 /// Adds the system to the `scheduler`.
 /// @memberof scheduler_t
 #define scheduler_declare_system(scheduler, mut, cons, system_name,            \
-                                 depends_on, ...)                              \
+                                 depends_on, dependency_count, ...)            \
   scheduler_declare_system_with_custom_runner(                                 \
       scheduler, mut, cons, system_name, system_##system_name, depends_on,     \
-      __VA_ARGS__)
+      dependency_count, __VA_ARGS__)
+
+static void scheduler_dump_dependency_graph(scheduler_t *scheduler, FILE *out) {
+  fprintf(out, "digraph G {");
+
+  for (sz i = 0; i < scheduler->scheduler_systems.size; i++) {
+    scheduler_system_t *sys =
+        list_get_ty_ptr(scheduler_system_t, &scheduler->scheduler_systems, i);
+
+    name_t name = sys->reqs.name;
+
+    fprintf(out, "%d;", (int)name);
+
+    for (sz j = 0; j < sys->reqs.depends_on_count; j++) {
+      name_t dependency = sys->reqs.depends_on[j];
+      fprintf(out, "%d -> %d;", (int)dependency, (int)name);
+    }
+  }
+
+  fprintf(out, "}");
+}
 
 static void scheduler_plan(scheduler_t *scheduler) {
   ASSERT_(!scheduler->is_running,
           "Attempt to change plans while the scheduler is running");
 
   scheduler->is_schedule_planned = true;
-  // TODO: actually plan everything
 }
 
 static void scheduler_set_requirements(scheduler_t *scheduler,
