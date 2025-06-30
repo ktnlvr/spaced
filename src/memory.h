@@ -1,6 +1,7 @@
 #ifndef __H__MEMORY__
 #define __H__MEMORY__
 
+#include <alloca.h>
 #if defined(__SANITIZE_ADDRESS__)
 #include <sanitizer/asan_interface.h>
 #endif
@@ -62,9 +63,11 @@ static inline void *allocator_alloc_copy(allocator_t allocator,
   (ty *)allocator_alloc_copy(allocator, data, sizeof(ty) * sz)
 
 /// @brief Move `memory` to a new memory region with at least `size` bytes.
+/// If an allocator does not implement `realloc` it will be polyfilled.
 /// @memberof allocator_t
 static inline void *allocator_realloc(allocator_t allocator, void *memory,
                                       sz size) {
+  ASSERT_(allocator.realloc, "This allocator does not implement `realloc`");
   return allocator.realloc(allocator.allocator, memory, size);
 }
 
@@ -103,9 +106,21 @@ static allocator_t allocator_new_malloc() {
   return ret;
 }
 
+static void *alloc_stack_alloc__alloc(allocator_ptr allocator, sz new_size) {
+  return alloca(new_size);
+}
+
+static allocator_t allocator_new_stack_alloc() {
+  allocator_t ret;
+  ret.alloc = alloc_stack_alloc__alloc;
+  ret.realloc = 0;
+  ret.free = 0;
+  return ret;
+}
+
 /// @brief If compiled with a memory sanitizer, any write to the
 /// brief selected memory will crash the program. If applied multiple
-/// times will still only be lifted once. Idempotent. 
+/// times will still only be lifted once. Idempotent.
 /// Pair of @ref unpoison_memory_region. O(1)
 #if defined(__SANITIZE_ADDRESS__)
 #define poison_memory_region(ptr, sz) __asan_poison_memory_region(ptr, sz)
@@ -113,7 +128,7 @@ static allocator_t allocator_new_malloc() {
 #define poison_memory_region(ptr, sz)
 #endif
 
-/// @brief Makes previously poisoned memory safe again. Idemponent. 
+/// @brief Makes previously poisoned memory safe again. Idemponent.
 /// Pair of @ref poison_memory_region. O(1)
 #if defined(__SANITIZE_ADDRESS__)
 #define unpoison_memory_region(ptr, sz) __asan_unpoison_memory_region(ptr, sz)

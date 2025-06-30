@@ -10,6 +10,7 @@
 #include "../rendering/image.h"
 #include "../rendering/instances.h"
 #include "../rendering/quads.h"
+#include "../rendering/shader.h"
 #include "../systems/camera.h"
 #include "../systems/scheduler.h"
 
@@ -70,20 +71,8 @@ int main(void) {
 
   image_bind(&tileset);
 
-  GLuint vs = glCreateShader(GL_VERTEX_SHADER);
-  glShaderSource(vs, 1, &vertex_src, NULL);
-  glCompileShader(vs);
-
-  GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
-  glShaderSource(fs, 1, &fragment_src, NULL);
-  glCompileShader(fs);
-
-  GLuint program = glCreateProgram();
-  glAttachShader(program, vs);
-  glAttachShader(program, fs);
-  glLinkProgram(program);
-  glDeleteShader(vs);
-  glDeleteShader(fs);
+  shader_t shader;
+  shader_init(&shader, vertex_src, fragment_src);
 
   scheduler_t scheduler =
       scheduler_new(SCHEDULER_STRATEGY_RANDOM, allocator_new_malloc(),
@@ -104,7 +93,7 @@ int main(void) {
                                .input = SYSTEM_REQ_PTR_REQUIRED,
                                .world = SYSTEM_REQ_PTR_REQUIRED,
                                .rendering_ctx = SYSTEM_REQ_PTR_REQUIRED,
-                               .system_specific_data = &program,
+                               .system_specific_data = &shader,
                            });
 
   scheduler_plan(&scheduler);
@@ -138,7 +127,7 @@ int main(void) {
 
     input_tick(ctx.window, &input);
 
-    system_render_quads(&world, program, _gl_quad_vao, &tileset);
+    system_render_quads(&world, shader.gl_program, _gl_quad_vao, &tileset);
     scheduler_tick(&scheduler, dt);
     scheduler_begin_running(&scheduler);
     scheduler_end_running(&scheduler);

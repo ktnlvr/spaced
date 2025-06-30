@@ -1,6 +1,7 @@
 #ifndef __H__SYSTEMS_CAMERA__
 #define __H__SYSTEMS_CAMERA__
 
+#include "../rendering/shader.h"
 #include "require.h"
 
 #define CAMERA_SPEED 2.5
@@ -23,8 +24,8 @@ static void system_camera_move(system_req_t payload,
 
 static void system_camera_set_projection(system_req_t payload,
                                          allocator_t temporary_allocator) {
-  GLuint *program_ptr = (GLuint *)payload.system_specific_data;
-  GLuint program = *program_ptr;
+  shader_t *shader_ptr = (shader_t *)payload.system_specific_data;
+  GLuint program = shader_ptr->gl_program;
 
   entity_iter_t it = world_entity_iter(payload.world);
 

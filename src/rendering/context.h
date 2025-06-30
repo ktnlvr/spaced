@@ -5,8 +5,8 @@
 #include <GLFW/glfw3.h>
 
 #include "../defs.h"
-#include "../vec2.h"
 #include "../mat4.h"
+#include "../vec2.h"
 
 typedef struct {
   i32 width, height;
@@ -36,6 +36,7 @@ static void rendering_ctx_init(rendering_ctx_t *ctx) {
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+  glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 
   ctx->window = glfwCreateWindow(640, 480, "Hello, world!", 0, 0);
   glfwMakeContextCurrent(ctx->window);
@@ -43,10 +44,11 @@ static void rendering_ctx_init(rendering_ctx_t *ctx) {
   glewInit();
 
   glEnable(GL_DEBUG_OUTPUT);
+  glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
   glDebugMessageCallback(glMessageCallback, 0);
 }
 
-static void rendering_ctx_show_window(rendering_ctx_t* ctx) {
+static void rendering_ctx_show_window(rendering_ctx_t *ctx) {
   glfwShowWindow(ctx->window);
 }
 
