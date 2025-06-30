@@ -62,8 +62,9 @@ Coded by Artur Roos. Available on [GitHub](https://github.com/ktnlvr/subastra). 
 
 The following is a looser list of things that were inspirational to the technical aspects of the project.
 
-- [Factorio](https://www.factorio.com/), a game about building the best factories.
+- [Factorio](https://www.factorio.com/), an addictive game about building the factories.
 - [Screeps.io](https://screeps.com/), a JavaScript game where you control small agents with code.
+- [ComputerCraft](https://tweaked.cc/), a Minecraft mod where you program computers with Lua.
 
 ## License
 
