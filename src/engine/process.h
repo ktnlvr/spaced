@@ -16,6 +16,10 @@ static void system_render_quads(world_t *world, GLuint program, GLuint vao,
   image_bind(image);
   GLint sampler_location = glGetUniformLocation(program, "sSampler");
   glUniform1i(sampler_location, 0);
+  GLint tilemap_size = glGetUniformLocation(program, "tilemapTotal");
+  glUniform2i(tilemap_size, 128, 128);
+  GLint tilemap_tile_size = glGetUniformLocation(program, "tileSize");
+  glUniform2i(tilemap_tile_size, 8, 8);
 
   entity_iter_t it = world_entity_iter_masked(world, ENTITY_KIND_CONSTRUCT);
   while (entity_iter_next(&it)) {

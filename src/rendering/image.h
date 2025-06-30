@@ -25,7 +25,6 @@ static void image_init(image_t *image, allocator_t alloc, const void *buffer,
   image->alloc = alloc;
 
   // TODO: decide if the texture should be premultiplied
-  stbi_set_flip_vertically_on_load(1);
   void *temp = stbi_load_from_memory((const stbi_uc *)buffer, size, &width,
                                      &height, &channels, 4);
 
