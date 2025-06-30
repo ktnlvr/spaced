@@ -5,11 +5,10 @@ cloc:
     cloc src
 
 build-tests:
-    for file in `ls src/tests/`; do \
-        just build-test src/tests/$file build/tests/$(basename $file .c).so; \
-    done
+    ls src/tests/ | xargs -n1 -P4 -I{} sh -c \
+        'just build-test src/tests/{} build/tests/$(basename {} .c).so'
 
-build-test filepath outpath: _build-warmup
+build-test filepath outpath:
     @mkdir -p ./build/tests
     clang -Isrc {{filepath}} -o {{outpath}} -std=c99 -g -shared -lm
 
