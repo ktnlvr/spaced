@@ -13,9 +13,9 @@ void _test_cleanup() {
   arena_cleanup(&ARENA_GLOBAL);
 }
 
-int _test_count = 3;
+int _test_count = 4;
 const char *_tests[] = {"_test_empty_insert", "_test_middle_insert",
-                        "_test_tail_insert"};
+                        "_test_tail_insert", "_test_remove_every_second"};
 
 void _test_empty_insert() {
   list_push_int(&list, 1);
@@ -52,5 +52,17 @@ void _test_tail_insert() {
   for (int i = 0; i <= 0x100; i++) {
     int v = list_get_ty(int, &list, i);
     ASSERT(v == i, "%d == %d", v, i);
+  }
+}
+
+void _test_remove_every_second() {
+  for (int i = 0; i <= 0xFF; i++)
+    list_push_int(&list, i);
+
+  for (int i = 0; i < 0x80; i++)
+    list_remove(&list, i + 1);
+
+  for (int i = 0; i < 0x80; i++) {
+    int x = list_get_ty(int, &list, i * 2);
   }
 }

@@ -129,12 +129,33 @@ static void *list_get(list_t *ls, sz idx) {
 
 #define list_get_ty(ty, ls, idx) (*list_get_ty_ptr(ty, ls, idx))
 
+/// @brief Removes the last index in the list. Returns `true` if
+/// the element was removed and `false` if the list was empty.
+/// @param [out] out The place for the value at the tail to be
+/// written to. Ignored if `NULL`.
+/// @memberof list_t
 static bool list_pop_tail(list_t *ls, void *out) {
   if (ls->size == 0)
     return false;
-  memcpy(out, list_get(ls, ls->size - 1), ls->_entry);
+  if (out)
+    memcpy(out, list_get(ls, ls->size - 1), ls->_entry);
   ls->size--;
   return true;
+}
+
+/// @brief Removes an element at index `idx`. Panics if the
+/// index is out of range.
+/// @memberof list_t
+static void list_remove(list_t *ls, sz idx) {
+  ASSERT__(idx < ls->size);
+
+  if (idx == ls->size) {
+    list_pop_tail(ls, 0);
+  }
+
+  byte *data = (byte *)ls->data;
+  byte *tail = data + ls->_entry * (ls->size + idx);
+  memmove(tail, tail + ls->_entry, ls->_entry * (ls->size - idx));
 }
 
 static void list_clear(list_t *ls) {
