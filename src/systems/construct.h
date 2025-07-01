@@ -24,9 +24,9 @@ static void system_render_constructs(system_req_t payload,
   image_bind(ptr->image);
   GLint sampler_location = glGetUniformLocation(ptr->program, "sSampler");
   glUniform1i(sampler_location, 0);
-  GLint tilemap_size = glGetUniformLocation(ptr->program, "tilemapTotal");
+  GLint tilemap_size = glGetUniformLocation(ptr->program, "tilemapSizePixels");
   glUniform2i(tilemap_size, 128, 128);
-  GLint tilemap_tile_size = glGetUniformLocation(ptr->program, "tileSize");
+  GLint tilemap_tile_size = glGetUniformLocation(ptr->program, "tileSizePixels");
   glUniform2i(tilemap_tile_size, 8, 8);
 
   entity_iter_t it =
@@ -41,7 +41,7 @@ static void system_render_constructs(system_req_t payload,
 
         instance_t instance;
         instance.position = vec2i_to_vec2(c.offset);
-        instance.tile_index = 0;
+        instance.tile_index = component_kind_to_tile_index(c.kind);
 
         instance_buffer_push(&it.entity->as_construct.instance, instance);
       }

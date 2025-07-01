@@ -24,16 +24,16 @@ const char *vertex_src =
     "layout (location = 3) in vec2 aOffset;"
     "out vec2 vTexCoord;"
     "uniform mat4 uProjection;"
-    "uniform ivec2 tilemapTotal;"
-    "uniform ivec2 tileSize;"
+    "uniform ivec2 tilemapSizePixels;"
+    "uniform ivec2 tileSizePixels;"
     "void main() {"
     "    gl_Position = uProjection * vec4(aPos + aOffset, 0.0, 1.0);"
-    "    vec2 atlasUV = vec2(tilemapTotal);"
-    "    vec2 singleTile = vec2(tileSize) / atlasUV;"
-    "    uint col = tileIndex % uint(tilemapTotal.x);"
-    "    uint row = tileIndex / uint(tilemapTotal.x);"
-    "    vec2 cellOffset = vec2(col, row) * singleTile;"
-    "    vTexCoord = cellOffset + texCoord * singleTile;"
+    "    uint tilesPerRow = uint(tilemapSizePixels.x) / uint(tileSizePixels.x);"
+    "    uint tilesPerCol = uint(tilemapSizePixels.y) / uint(tileSizePixels.y);"
+    "    uint col = tileIndex % tilesPerRow;"
+    "    uint row = tileIndex / tilesPerRow;"
+    "    vec2 singleTile = vec2(1.0) / vec2(tilesPerRow, tilesPerCol);"
+    "    vTexCoord = (vec2(col, row) + texCoord) * singleTile;"
     "}";
 
 const char *fragment_src = "#version 330 core\n"
@@ -142,11 +142,16 @@ int main(void) {
       world_spawn_entity_construct(&world, vec2i_zero(), vec2_zero());
 
   for (int i = -1; i <= 1; i++) {
-    for (int j = -1; j <= 1; j++) {
+    for (int j = -1; j <= 2; j++) {
+      if (i == 0 && (j == 0 || j == 1))
+        continue;
       component_t mesh = component_new_mesh();
       entity_construct_add_component(entt, vec2i_new(i, j), mesh);
     }
   }
+
+  component_t processor = component_new_processor();
+  entity_construct_add_component(entt, vec2i_new(0, 0), processor);
 
   entity_t *camera =
       world_spawn_entity_camera(&world, vec2i_zero(), vec2_zero(), 4.);

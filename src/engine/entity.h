@@ -66,8 +66,20 @@ typedef enum {
   COMPONENT_KIND_MESH,
   COMPONENT_KIND_THRUSTER,
   COMPONENT_KIND_ENGINE,
+  COMPONENT_KIND_PROCESSOR,
   COMPONENT_KIND_count,
 } component_kind_t;
+
+static int component_kind_to_tile_index(component_kind_t kind) {
+  switch (kind) {
+  case COMPONENT_KIND_MESH:
+    return 0;
+  case COMPONENT_KIND_PROCESSOR:
+    return 4;
+  }
+
+  return -1;
+}
 
 typedef struct {
   component_kind_t kind;
@@ -96,6 +108,12 @@ static void entity_construct_add_component(entity_t *entity, vec2i at,
 static component_t component_new_mesh() {
   component_t ret;
   ret.kind = COMPONENT_KIND_MESH;
+  return ret;
+}
+
+static component_t component_new_processor() {
+  component_t ret;
+  ret.kind = COMPONENT_KIND_PROCESSOR;
   return ret;
 }
 
