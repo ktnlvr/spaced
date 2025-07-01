@@ -3,7 +3,6 @@
 #include <stdio.h>
 
 #include "../engine/input.h"
-#include "../engine/process.h"
 #include "../engine/world.h"
 #include "../misc.h"
 #include "../rendering/context.h"
@@ -150,8 +149,8 @@ int main(void) {
     }
   }
 
-  block_t processor = block_new_processor();
-  entity_construct_add_block(entt, vec2i_new(0, 0), processor);
+  block_t chip = block_new_chip(alloc, CHIP_MAXIMUM_MEMORY);
+  entity_construct_add_block(entt, vec2i_new(0, 0), chip);
 
   entity_t *camera =
       world_spawn_entity_camera(&world, vec2i_zero(), vec2_zero(), 4.);

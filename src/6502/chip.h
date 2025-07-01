@@ -1,16 +1,19 @@
 #ifndef __H__CHIP__
 #define __H__CHIP__
 
-#include <string.h>
-#include <stdio.h>
 #include <stdbool.h>
+#include <stdio.h>
+#include <string.h>
 
 #include "../defs.h"
+#include "../memory.h"
 #include "addressing.h"
 
 #define CHIP_STACK_BOTTOM_ADDR 0x0100
+#define CHIP_MAXIMUM_MEMORY 0x10000
 
-typedef byte (*chip_memory_callback_t)(void *, bool is_write, u16 addr, byte value);
+typedef byte (*chip_memory_callback_t)(void *, bool is_write, u16 addr,
+                                       byte value);
 
 typedef struct chip_memory_callback_node_t {
   chip_memory_callback_t callback;
@@ -58,13 +61,15 @@ static void chip_dbg_dump(chip_t *self) {
          self->pc, self->ac, self->x, self->y, self->sr, self->sp);
 }
 
-static void chip_init(chip_t *self, byte *memory, u32 quota) {
+static void chip_init(chip_t *self, allocator_t allocator, sz memory_size,
+                      u32 quota) {
   self->memory_callback = 0;
   self->userdata = 0;
 
   self->quota = quota;
   self->halted = false;
 
+  byte *memory = allocator_alloc_ty(byte, allocator, memory_size);
   self->memory = memory;
   self->ac = 0;
   self->sp = 0xFF;
@@ -76,7 +81,7 @@ static void chip_init(chip_t *self, byte *memory, u32 quota) {
 }
 
 static void chip_memory_add_callback(chip_t *self,
-                                           chip_memory_callback_t callback) {
+                                     chip_memory_callback_t callback) {
   chip_memory_callback_node_t *current = (chip_memory_callback_node_t *)malloc(
       sizeof(chip_memory_callback_node_t));
   current->callback = callback;
@@ -96,8 +101,8 @@ static void chip_load_rom(chip_t *self, byte *rom, size_t len, u16 rom_start) {
 static byte chip_memory_read_direct(chip_t *self, u16 at) {
   byte value = self->memory[at & 0xFFFF];
 
-  for (chip_memory_callback_node_t *read_node = self->memory_callback; read_node;
-       read_node = read_node->next)
+  for (chip_memory_callback_node_t *read_node = self->memory_callback;
+       read_node; read_node = read_node->next)
     value = read_node->callback(self->userdata, false, at, value);
 
   return value;

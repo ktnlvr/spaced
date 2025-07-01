@@ -1,5 +1,5 @@
-#ifndef __H__MEMORY__
-#define __H__MEMORY__
+#ifndef __H__6502_ADDRESSING__
+#define __H__6502_ADDRESSING__
 
 #include "../defs.h"
 
