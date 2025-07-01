@@ -6,6 +6,7 @@
 #include "../rendering/context.h"
 #include "../rendering/instances.h"
 #include "../vec2i.h"
+#include "construct.h"
 
 typedef u64 entity_id_t;
 
@@ -50,11 +51,7 @@ typedef struct entity_t {
   vec2 chunk_local_position;
 
   union {
-    struct {
-      list_t components;
-      instance_buffer_t instance;
-      bool is_dirty;
-    } as_construct;
+    construct_t as_construct;
     struct {
       entity_id_t target;
       float scale;
@@ -62,59 +59,23 @@ typedef struct entity_t {
   };
 } entity_t;
 
-typedef enum {
-  COMPONENT_KIND_MESH,
-  COMPONENT_KIND_THRUSTER,
-  COMPONENT_KIND_ENGINE,
-  COMPONENT_KIND_PROCESSOR,
-  COMPONENT_KIND_count,
-} component_kind_t;
-
-static int component_kind_to_tile_index(component_kind_t kind) {
-  switch (kind) {
-  case COMPONENT_KIND_MESH:
-    return 0;
-  case COMPONENT_KIND_PROCESSOR:
-    return 4;
-  }
-
-  return -1;
-}
-
-typedef struct {
-  component_kind_t kind;
-  vec2i offset;
-} component_t;
-
 static void entity_init_construct(entity_t *entity, allocator_t alloc,
                                   vec2i chunk_relative, vec2 chunk_local) {
   entity->kind = ENTITY_KIND_CONSTRUCT;
   entity->chunk_relative_position = chunk_relative;
   entity->chunk_local_position = chunk_local;
 
-  list_init_ty(component_t, &entity->as_construct.components, alloc);
+  list_init_ty(block_t, &entity->as_construct.blocks, alloc);
   instance_buffer_init(&entity->as_construct.instance, alloc,
                        CONSTRUCT_MAXIMUM_COMPONENTS);
   entity->as_construct.is_dirty = false;
 }
 
-static void entity_construct_add_component(entity_t *entity, vec2i at,
-                                           component_t component) {
-  component.offset = at;
-  list_push_var(&entity->as_construct.components, component);
+static void entity_construct_add_block(entity_t *entity, vec2i at,
+                                       block_t block) {
+  block.offset = at;
+  list_push_var(&entity->as_construct.blocks, block);
   entity->as_construct.is_dirty = true;
-}
-
-static component_t component_new_mesh() {
-  component_t ret;
-  ret.kind = COMPONENT_KIND_MESH;
-  return ret;
-}
-
-static component_t component_new_processor() {
-  component_t ret;
-  ret.kind = COMPONENT_KIND_PROCESSOR;
-  return ret;
 }
 
 static void entity_init_camera(entity_t *entity, allocator_t alloc,

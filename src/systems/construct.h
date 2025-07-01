@@ -26,7 +26,8 @@ static void system_render_constructs(system_req_t payload,
   glUniform1i(sampler_location, 0);
   GLint tilemap_size = glGetUniformLocation(ptr->program, "tilemapSizePixels");
   glUniform2i(tilemap_size, 128, 128);
-  GLint tilemap_tile_size = glGetUniformLocation(ptr->program, "tileSizePixels");
+  GLint tilemap_tile_size =
+      glGetUniformLocation(ptr->program, "tileSizePixels");
   glUniform2i(tilemap_tile_size, 8, 8);
 
   entity_iter_t it =
@@ -35,13 +36,12 @@ static void system_render_constructs(system_req_t payload,
     if (it.entity->as_construct.is_dirty) {
       instance_buffer_clear(&it.entity->as_construct.instance);
 
-      for (int i = 0; i < it.entity->as_construct.components.size; i++) {
-        component_t c =
-            list_get_ty(component_t, &it.entity->as_construct.components, i);
+      for (int i = 0; i < it.entity->as_construct.blocks.size; i++) {
+        block_t b = list_get_ty(block_t, &it.entity->as_construct.blocks, i);
 
         instance_t instance;
-        instance.position = vec2i_to_vec2(c.offset);
-        instance.tile_index = component_kind_to_tile_index(c.kind);
+        instance.position = vec2i_to_vec2(b.offset);
+        instance.tile_index = block_kind_to_tile_index(b.kind);
 
         instance_buffer_push(&it.entity->as_construct.instance, instance);
       }

@@ -145,13 +145,13 @@ int main(void) {
     for (int j = -1; j <= 2; j++) {
       if (i == 0 && (j == 0 || j == 1))
         continue;
-      component_t mesh = component_new_mesh();
-      entity_construct_add_component(entt, vec2i_new(i, j), mesh);
+      block_t mesh = block_new_mesh();
+      entity_construct_add_block(entt, vec2i_new(i, j), mesh);
     }
   }
 
-  component_t processor = component_new_processor();
-  entity_construct_add_component(entt, vec2i_new(0, 0), processor);
+  block_t processor = block_new_processor();
+  entity_construct_add_block(entt, vec2i_new(0, 0), processor);
 
   entity_t *camera =
       world_spawn_entity_camera(&world, vec2i_zero(), vec2_zero(), 4.);
