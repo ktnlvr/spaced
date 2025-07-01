@@ -17,9 +17,9 @@ typedef enum {
 static int block_kind_to_tile_index(block_kind_t kind) {
   switch (kind) {
   case BLOCK_KIND_MESH:
-    return 0;
+    return 1;
   case BLOCK_KIND_CHIP:
-    return 4;
+    return 2;
   }
 
   return -1;

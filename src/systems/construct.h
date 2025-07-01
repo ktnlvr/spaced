@@ -28,7 +28,7 @@ static void system_render_constructs(system_req_t payload,
   glUniform2i(tilemap_size, 128, 128);
   GLint tilemap_tile_size =
       glGetUniformLocation(ptr->program, "tileSizePixels");
-  glUniform2i(tilemap_tile_size, 8, 8);
+  glUniform2i(tilemap_tile_size, 16, 16);
 
   entity_iter_t it =
       world_entity_iter_masked(payload.world, ENTITY_KIND_CONSTRUCT);
