@@ -6,7 +6,8 @@
 
 /// @brief Read a binary file `file` of into memory.
 /// @param[out] size The final size of the buffer read
-static void *read_binary_file(allocator_t allocator, const char *filename, sz* size) {
+static void *read_binary_file(allocator_t allocator, const char *filename,
+                              sz *size) {
   ASSERT__(filename);
   ASSERT__(size);
 
@@ -20,6 +21,24 @@ static void *read_binary_file(allocator_t allocator, const char *filename, sz* s
   byte *buffer = allocator_alloc_ty(byte, allocator, *size);
   fread(buffer, sizeof(byte), *size, file);
   fclose(file);
+
+  return buffer;
+}
+
+static char *read_text_file(allocator_t allocator, const char *filename) {
+  ASSERT__(filename);
+
+  // TODO: do error handling
+  FILE *file = fopen(filename, "r");
+  fseek(file, 0, SEEK_END);
+
+  sz size = ftell(file);
+  rewind(file);
+
+  char *buffer = allocator_alloc_ty(char, allocator, size + 1);
+  fread(buffer, sizeof(char), size, file);
+  fclose(file);
+  buffer[size] = '\0';
 
   return buffer;
 }
