@@ -2,117 +2,16 @@
 #include <GLFW/glfw3.h>
 #include <stdio.h>
 
-#include "../engine/input.h"
-#include "../engine/world.h"
-#include "../misc.h"
-#include "../rendering/context.h"
-#include "../rendering/image.h"
-#include "../rendering/instances.h"
-#include "../rendering/quads.h"
-#include "../rendering/shader.h"
-#include "../systems/camera.h"
-#include "../systems/construct.h"
-#include "../systems/input.h"
-#include "../systems/scheduler.h"
+#include "../setup/client.h"
 
 int main(void) {
-  names_init();
-
   allocator_t alloc = allocator_new_malloc();
-
-  rendering_ctx_t ctx;
-  rendering_ctx_init(&ctx);
-  rendering_ctx_show_window(&ctx);
-
-  world_t world;
-  world_init(&world);
-
-  input_t input;
-  input_init(&input);
-
-  gl_quad_init();
-
-  // Load the tileset
-  sz file_size;
-  void *file_buffer =
-      read_binary_file(alloc, "./assets/tileset.png", &file_size);
-
-  image_t tileset;
-  image_init(&tileset, alloc, file_buffer, file_size);
-  allocator_free(alloc, file_buffer);
-
-  image_bind(&tileset);
-
-  char *vertex_source = read_text_file(alloc, "./assets/tileset.vert");
-  char *fragment_source = read_text_file(alloc, "./assets/tileset.frag");
-
-  shader_t shader;
-  shader_init(&shader, vertex_source, fragment_source);
-
-  scheduler_t scheduler =
-      scheduler_new(SCHEDULER_STRATEGY_RANDOM, allocator_new_malloc(),
-                    allocator_new_malloc());
-
-  scheduler_declare_system(&scheduler, ENTITY_KIND_CAMERA,
-                           ENTITY_KIND_MASK_EMPTY, camera_move,
-                           SYSTEM_REQ_NO_DEPS,
-                           {
-                               .input = SYSTEM_REQ_PTR_REQUIRED,
-                               .world = SYSTEM_REQ_PTR_REQUIRED,
-                               .phase = SYSTEM_PHASE_PRE_RENDER,
-                           });
-
-  name_t deps_proj[] = {system_camera_move_name};
-  scheduler_declare_system(&scheduler, ENTITY_KIND_CAMERA,
-                           ENTITY_KIND_MASK_EMPTY, camera_set_projection,
-                           deps_proj, 1,
-                           {
-                               .input = SYSTEM_REQ_PTR_REQUIRED,
-                               .world = SYSTEM_REQ_PTR_REQUIRED,
-                               .rendering_ctx = SYSTEM_REQ_PTR_REQUIRED,
-                               .system_specific_data = &shader,
-                               .phase = SYSTEM_PHASE_PRE_RENDER,
-                           });
-
-  render_constructs_data_t render_constructs_data;
-  render_constructs_data.image = &tileset;
-  render_constructs_data.program = shader.gl_program;
-  render_constructs_data.vao = _gl_quad_vao;
-
-  name_t deps_render_constructs[] = {system_camera_move_name};
-  scheduler_declare_system(&scheduler, ENTITY_KIND_CONSTRUCT,
-                           ENTITY_KIND_MASK_EMPTY, render_constructs,
-                           deps_render_constructs, 1,
-                           {
-                               .input = SYSTEM_REQ_PTR_REQUIRED,
-                               .world = SYSTEM_REQ_PTR_REQUIRED,
-                               .rendering_ctx = SYSTEM_REQ_PTR_REQUIRED,
-                               .system_specific_data = &render_constructs_data,
-                               .phase = SYSTEM_PHASE_RENDER,
-                           });
-
-  scheduler_declare_system(&scheduler, ENTITY_KIND_MASK_EMPTY,
-                           ENTITY_KIND_MASK_EMPTY, process_input,
-                           SYSTEM_REQ_NO_DEPS,
-                           {
-                               .input = SYSTEM_REQ_PTR_REQUIRED,
-                               .rendering_ctx = SYSTEM_REQ_PTR_REQUIRED,
-                               .phase = SYSTEM_PHASE_PRE_UPDATE,
-                           });
-
-  FILE *f = fopen("./schedule.tmp.graphviz", "w+");
-  scheduler_plan(&scheduler);
-  scheduler_dump_dependency_graph(&scheduler, f);
-  fclose(f);
-
-  system_req_t reqs = system_req_new();
-  reqs.input = &input;
-  reqs.rendering_ctx = &ctx;
-  reqs.world = &world;
-  scheduler_set_requirements(&scheduler, reqs);
+  client_data_t my_data;
+  client_data_init(&my_data, alloc);
+  client_schedule_systems(&my_data);
 
   entity_t *entt =
-      world_spawn_entity_construct(&world, vec2i_zero(), vec2_zero());
+      world_spawn_entity_construct(&my_data.world, vec2i_zero(), vec2_zero());
 
   for (int i = -1; i <= 1; i++) {
     for (int j = -1; j <= 2; j++) {
@@ -127,26 +26,26 @@ int main(void) {
   entity_construct_add_block(entt, vec2i_new(0, 0), chip);
 
   entity_t *camera =
-      world_spawn_entity_camera(&world, vec2i_zero(), vec2_zero(), 4.);
+      world_spawn_entity_camera(&my_data.world, vec2i_zero(), vec2_zero(), 4.);
 
   double last_t = glfwGetTime();
-  while (!rendering_ctx_should_close(&ctx)) {
-    rendering_ctx_frame_begin(&ctx);
+  while (!rendering_ctx_should_close(&my_data.rendering_ctx)) {
+    rendering_ctx_frame_begin(&my_data.rendering_ctx);
 
     double t = glfwGetTime();
     double dt = t - last_t;
     last_t = t;
 
-    scheduler_tick(&scheduler, dt);
-    scheduler_begin_running(&scheduler);
-    scheduler_end_running(&scheduler);
+    scheduler_tick(&my_data.scheduler, dt);
+    scheduler_begin_running(&my_data.scheduler);
+    scheduler_end_running(&my_data.scheduler);
 
-    rendering_ctx_frame_end(&ctx);
+    rendering_ctx_frame_end(&my_data.rendering_ctx);
   }
 
-  rendering_ctx_cleanup(&ctx);
+  rendering_ctx_cleanup(&my_data.rendering_ctx);
 
-  world_cleanup(&world);
+  world_cleanup(&my_data.world);
 
   names_cleanup();
 
