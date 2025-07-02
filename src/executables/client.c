@@ -15,7 +15,7 @@ int main(void) {
 
   for (int i = -1; i <= 1; i++) {
     for (int j = -1; j <= 2; j++) {
-      if (i == 0 && (j == 0 || j == 1))
+      if (i == 0 && (j == 0 || j == -1) || (j - 1 == abs(i)))
         continue;
       block_t mesh = block_new_mesh();
       entity_construct_add_block(entt, vec2i_new(i, j), mesh);
@@ -24,6 +24,11 @@ int main(void) {
 
   block_t chip = block_new_chip(alloc, CHIP_MAXIMUM_MEMORY);
   entity_construct_add_block(entt, vec2i_new(0, 0), chip);
+
+  block_t thruster = block_new_thruster(1);
+  entity_construct_add_block(entt, vec2i_new(0, -1), thruster);
+  entity_construct_add_block(entt, vec2i_new(-1, 2), thruster);
+  entity_construct_add_block(entt, vec2i_new(1, 2), thruster);
 
   entity_t *camera =
       world_spawn_entity_camera(&my_data.world, vec2i_zero(), vec2_zero(), 4.);

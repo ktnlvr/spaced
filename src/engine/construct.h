@@ -20,6 +20,8 @@ static int block_kind_to_tile_index(block_kind_t kind) {
     return 1;
   case BLOCK_KIND_CHIP:
     return 2;
+  case BLOCK_KIND_THRUSTER:
+    return 3;
   }
 
   return -1;
@@ -28,6 +30,8 @@ static int block_kind_to_tile_index(block_kind_t kind) {
 typedef struct {
   block_kind_t kind;
   vec2i offset;
+  int orientation;
+
   union {
     struct {
       chip_t chip;
@@ -46,6 +50,14 @@ static block_t block_new_chip(allocator_t alloc, sz memory_size) {
   ret.kind = BLOCK_KIND_CHIP;
 
   chip_init(&ret.as_chip.chip, alloc, memory_size, 0);
+
+  return ret;
+}
+
+
+static block_t block_new_thruster(int orientation) {
+  block_t ret;
+  ret.kind = BLOCK_KIND_THRUSTER;
 
   return ret;
 }
