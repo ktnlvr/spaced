@@ -20,8 +20,14 @@ typedef struct chip_memory_callback_node_t {
   struct chip_memory_callback_node_t *next;
 } chip_memory_callback_node_t;
 
+typedef struct chip_t chip_t;
+
+typedef void (*chip_external_call_f)(chip_t *chip);
+
 typedef struct chip_t {
   chip_memory_callback_node_t *memory_callback;
+  chip_external_call_f external_call;
+
   void *userdata;
 
   u32 quota;
@@ -73,6 +79,8 @@ static void chip_init(chip_t *self, allocator_t allocator, sz memory_size,
   self->memory = memory;
   self->ac = 0;
   self->sp = 0xFF;
+
+  self->external_call = 0;
 
   self->pc = 0;
   self->x = 0;

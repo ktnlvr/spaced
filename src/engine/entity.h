@@ -68,6 +68,7 @@ static void entity_init_construct(entity_t *entity, allocator_t alloc,
   list_init_ty(block_t, &entity->as_construct.blocks, alloc);
   instance_buffer_init(&entity->as_construct.instance, alloc,
                        CONSTRUCT_MAXIMUM_COMPONENTS);
+  map_init_ty(vec2i, &entity->as_construct.device_map, alloc);
   entity->as_construct.is_dirty = false;
 }
 

@@ -3,6 +3,7 @@
 
 #include "../6502/chip.h"
 #include "../list.h"
+#include "../map.h"
 #include "../rendering/instances.h"
 #include "../vec2i.h"
 
@@ -39,6 +40,9 @@ typedef struct {
     struct {
       chip_t chip;
     } as_chip;
+    struct {
+      byte throttle;
+    } as_thruster;
   };
 } block_t;
 
@@ -47,17 +51,6 @@ static block_t block_new_mesh() {
   ret.kind = BLOCK_KIND_MESH;
   return ret;
 }
-
-static block_t block_new_chip(allocator_t alloc, sz memory_size) {
-  block_t ret;
-  ret.kind = BLOCK_KIND_CHIP;
-
-  chip_init(&ret.as_chip.chip, alloc, memory_size, 0);
-
-  return ret;
-}
-
-
 static block_t block_new_thruster(int orientation) {
   block_t ret;
   ret.kind = BLOCK_KIND_THRUSTER;
@@ -65,10 +58,54 @@ static block_t block_new_thruster(int orientation) {
   return ret;
 }
 
-typedef struct {
+typedef struct construct_t {
   list_t blocks;
   instance_buffer_t instance;
+  map_t device_map;
   bool is_dirty;
 } construct_t;
+
+static void block__external_call(chip_t *chip, block_t *block) {
+  switch (block->kind) {
+  case BLOCK_KIND_THRUSTER: {
+    if (chip->y == 0) {
+      byte throttle = chip_stack_pull(chip);
+      block->as_thruster.throttle = throttle;
+    }
+    break;
+  }
+  }
+  return;
+}
+
+static void block_chip__external_call(chip_t *chip) {
+  construct_t *self = (construct_t *)chip->userdata;
+  byte device = chip->x;
+  vec2i *off = map_get_ty(vec2i, &self->device_map, device);
+
+  if (off == 0) {
+    chip->halted = true;
+    return;
+  }
+
+  for (sz i = 0; i < self->blocks.size; i++) {
+    block_t *blk = list_get_ty_ptr(block_t, &self->blocks, i);
+    if (vec2_eq(blk->offset, *off)) {
+      block__external_call(chip, blk);
+      break;
+    }
+  }
+}
+
+
+static block_t block_new_chip(allocator_t alloc, sz memory_size) {
+  block_t ret;
+  ret.kind = BLOCK_KIND_CHIP;
+
+  chip_init(&ret.as_chip.chip, alloc, memory_size, 0);
+  ret.as_chip.chip.external_call = block_chip__external_call;
+
+  return ret;
+}
 
 #endif

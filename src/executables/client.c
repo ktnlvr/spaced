@@ -4,6 +4,8 @@
 
 #include "../setup/client.h"
 
+#include "../6502/ops.h"
+
 int main(void) {
   allocator_t alloc = allocator_new_malloc();
   client_data_t my_data;
@@ -22,16 +24,27 @@ int main(void) {
     }
   }
 
+  vec2i chip_offset = vec2i_new(0, 0);
   block_t chip = block_new_chip(alloc, CHIP_MAXIMUM_MEMORY);
-  entity_construct_add_block(entt, vec2i_new(0, 0), chip);
+  entity_construct_add_block(entt, chip_offset, chip);
+  chip.as_chip.chip.userdata = &entt->as_construct;
 
+  vec2i primary_thruster_offset = vec2i_new(0, -1);
   block_t thruster = block_new_thruster(1);
-  entity_construct_add_block(entt, vec2i_new(0, -1), thruster);
+  entity_construct_add_block(entt, primary_thruster_offset, thruster);
   entity_construct_add_block(entt, vec2i_new(-1, 2), thruster);
   entity_construct_add_block(entt, vec2i_new(1, 2), thruster);
 
   entity_t *camera =
       world_spawn_entity_camera(&my_data.world, vec2i_zero(), vec2_zero(), 4.);
+
+  sz thruster_program_size;
+  byte *thuster_program = read_binary_file(alloc, "build/thruster/main.bin",
+                                           &thruster_program_size);
+  chip_load_rom(&chip.as_chip.chip, thuster_program, thruster_program_size,
+                0xF800);
+
+  map_insert_ty(vec2i, &entt->as_construct.device_map, 16, &primary_thruster_offset);
 
   double last_t = glfwGetTime();
   while (!rendering_ctx_should_close(&my_data.rendering_ctx)) {
@@ -44,6 +57,9 @@ int main(void) {
     scheduler_tick(&my_data.scheduler, dt);
     scheduler_begin_running(&my_data.scheduler);
     scheduler_end_running(&my_data.scheduler);
+
+    chip_dbg_dump(&chip.as_chip.chip);
+    chip_step(&chip.as_chip.chip);
 
     rendering_ctx_frame_end(&my_data.rendering_ctx);
   }

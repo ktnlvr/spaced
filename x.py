@@ -82,6 +82,9 @@ export_only = {
     "CLI",
     "SED",
     "CLV",
+    "TXS",
+    "CLD",
+    "INX",
 }
 
 

@@ -98,6 +98,10 @@ static void chip_op_pla(chip_t *self) {
 
 static void chip_op_pha(chip_t *self) { chip_stack_push(self, self->ac); }
 
+static void chip_op_phx(chip_t *self) { chip_stack_push(self, self->x); }
+
+static void chip_op_phy(chip_t *self) { chip_stack_push(self, self->y); }
+
 static void chip_op_cpy(chip_t *self, addressing_mode_t mode) {
   byte value = chip_memory_read_word(self, mode);
   byte result = self->y - value;
@@ -416,6 +420,12 @@ static void chip_step(chip_t *self) {
   byte opcode = chip_pc_inc(self);
   if (opcode == 0x80) {
     self->halted = true;
+    return;
+  } else if (opcode == 0x89) {
+    if (self->external_call)
+      self->external_call(self);
+    else
+      self->halted = true;
     return;
   }
 

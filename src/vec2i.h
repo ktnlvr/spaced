@@ -27,4 +27,6 @@ static vec2 vec2i_to_vec2(vec2i v) {
   return ret;
 }
 
+static bool vec2_eq(vec2i a, vec2i b) { return a.x == b.x && a.y == b.y; }
+
 #endif
