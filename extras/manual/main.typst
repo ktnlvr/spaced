@@ -1,0 +1,56 @@
+#set page(paper: "a4")
+
+#align(center)[#text(size: 36pt)[*Grimoire 65XX*]]
+#align(center)[#text(size: 24pt)[The Compendium and (brief) Compendium of instructions, suggestions, methods, algorithms and other esoterica for programming a 6502-based computer for travel, combat and trade matters in space, intended for beginners and advanced users.]]
+
+#pagebreak()
+
+#outline()
+
+#pagebreak()
+
+#set page(columns: 2, numbering: "1")
+
+= How to Read This
+
+This manual details the basic information about the workings of the state of the art faring devices. 
+
+- The manual assumes basic familiarity with programming in C and/or Assembly.
+
+- The manual does not detail the intricacies of using tools like `cc65` or similar toolchains, but does leave references to the official documentation when needed.
+
+- The manual does not detail the generic workings of the 6502 platform, but does explain the specifics of working in the environment.
+
+#pagebreak()
+
+= Programming the Chip
+
+== Interfacing with Devices
+
+While programming without side effects is fantastic, it is rarely useful. Unlike Haskell, the chips have a capacity to perform IO (Input/Output) effects. A chip can interact with any other block on the construct as long as it is set up correctly.
+
+Before any interfacing can be done you must configure your construct. Each construct has a _device map_ that maps a position of a certain block in its construction to a numerical index. This map is configured by your construct administrator.
+
+To interface with a _device_ include the `0x89` instruction in your source code. It is a (nonstandard) instruction for "External Call". Place the index of the device you want to interface with in `X`. Naturally, this limits your chip to interfacing with `256` devices. Thee specific instruction to execute is usually put in `Y`.
+
+When the instruction is executed the control is temporarily yielded to the device. If you wrote the data to the device it will be gone off the stack. If you read the data, it will appear on the stack instead.
+
+Each device is unique, so the exact details of how they handle your data are specific to each. 
+
+Keep in mind that all interfacing incurs a cost like increased power drain or slowed down computation rates. 
+
+Let's look at an example of interfacing with a _thruster_. It exposes only one method: `0` for "Set Throttle". The value on the stack controls how much power to output with `0xFF` being fully on and `0x00` being fully off. The actual achieved acceleration will depend on the specific fuel used and the energy output of your engine. Let's imagine the thruster being configured at index 16:
+
+```
+ldx #16     ; load the device index
+lda #$80    ; load ~50% 
+pha
+ldy #$0     ; set method to "Set Throttle"
+.byte $89   ; and offloat the work
+.byte $80   ; halt
+
+```
+
+#pagebreak()
+
+= Appendix
