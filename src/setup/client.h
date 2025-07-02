@@ -13,6 +13,7 @@
 #include "../systems/camera.h"
 #include "../systems/construct.h"
 #include "../systems/input.h"
+#include "../systems/physics.h"
 #include "../systems/require.h"
 #include "../systems/scheduler.h"
 
@@ -62,6 +63,24 @@ static void client_data_init(client_data_t *data, allocator_t alloc) {
   data->scheduler = scheduler_new(SCHEDULER_STRATEGY_RANDOM, alloc, alloc);
 
   client_data__load_assets(data);
+}
+
+static void client__schedule_physics(client_data_t *data) {
+  scheduler_declare_system(&data->scheduler, ENTITY_KIND_CONSTRUCT,
+                           ENTITY_KIND_CONSTRUCT, integrate_velocity,
+                           SYSTEM_REQ_NO_DEPS,
+                           {
+                               .phase = SYSTEM_PHASE_POST_UPDATE,
+                               .world = (world_t *)1,
+                           });
+
+  scheduler_declare_system(&data->scheduler, ENTITY_KIND_CONSTRUCT,
+                           ENTITY_KIND_CONSTRUCT, tick_thrusters,
+                           SYSTEM_REQ_NO_DEPS,
+                           {
+                               .phase = SYSTEM_PHASE_PRE_RENDER,
+                               .world = (world_t *)1,
+                           });
 }
 
 static void client__schedule_rendering(client_data_t *data) {
@@ -122,6 +141,7 @@ static void client_schedule_systems(client_data_t *data) {
   reqs.world = &data->world;
   scheduler_set_requirements(&data->scheduler, reqs);
 
+  client__schedule_physics(data);
   client__schedule_rendering(data);
 
   FILE *f = fopen("./schedule.tmp.graphviz", "w+");

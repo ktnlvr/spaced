@@ -86,8 +86,6 @@ static system_req_t system_req_new() {
 
 static void system_req_fill_in(system_req_t *target,
                                const system_req_t parent) {
-  target->_entity_kinds_const = parent._entity_kinds_const;
-  target->_entity_kinds_mut = parent._entity_kinds_mut;
   if (parent._entity_kinds_const || parent._entity_kinds_mut || target->world) {
     ASSERT_(parent.world, "world_t expected in parent, but not filled in");
     target->world = parent.world;
@@ -124,6 +122,17 @@ static void system_req_entity_kinds_mut(system_req_t *req,
   req->_entity_kinds_mut =
       (entity_kind_mask_t)((int)req->_entity_kinds_mut | (int)entity_kind_mask);
   system_req_entity_kinds_const(req, entity_kind_mask);
+}
+
+static entity_iter_t system_req_entity_iter(system_req_t *req) {
+  ASSERT_(req->world,
+          "World must be requested to retrieve the entity iterator");
+
+  entity_iter_t iter = world_entity_iter_masked(
+      req->world, (entity_kind_mask_t)((u32)req->_entity_kinds_const |
+                                       (u32)req->_entity_kinds_mut));
+
+  return iter;
 }
 
 #endif

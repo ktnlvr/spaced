@@ -6,6 +6,8 @@
 #include "../rendering/image.h"
 #include "../rendering/quads.h"
 
+#define THRUSTER_POWER 0.01
+
 typedef struct {
   GLuint program;
   GLuint vao;
@@ -53,6 +55,29 @@ static void system_render_constructs(system_req_t payload,
 
     glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4,
                           it.entity->as_construct.instance.size);
+  }
+}
+
+static void system_tick_thrusters(system_req_t payload, allocator_t _) {
+  entity_iter_t it = system_req_entity_iter(&payload);
+  while (entity_iter_next(&it)) {
+    ASSERT__(it.entity->kind == ENTITY_KIND_CONSTRUCT);
+
+    for (sz i = 0; i < it.entity->as_construct.blocks.size; i++) {
+      block_t *blk =
+          list_get_ty_ptr(block_t, &it.entity->as_construct.blocks, i);
+      if (blk->kind != BLOCK_KIND_THRUSTER)
+        continue;
+      if (blk->as_thruster.throttle == 0)
+        continue;
+
+      blk->as_thruster.throttle--;
+
+      float acceleration =
+          THRUSTER_POWER * (float)blk->as_thruster.throttle / 255.f;
+      vec2 *v = &it.entity->as_construct.velocity;
+      *v = vec2_add(*v, vec2_new(0, acceleration));
+    }
   }
 }
 

@@ -70,6 +70,7 @@ static void entity_init_construct(entity_t *entity, allocator_t alloc,
                        CONSTRUCT_MAXIMUM_COMPONENTS);
   map_init_ty(vec2i, &entity->as_construct.device_map, alloc);
   entity->as_construct.is_dirty = false;
+  entity->as_construct.velocity = vec2_zero();
 }
 
 static void entity_construct_add_block(entity_t *entity, vec2i at,

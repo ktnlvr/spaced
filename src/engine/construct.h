@@ -54,6 +54,7 @@ static block_t block_new_mesh() {
 static block_t block_new_thruster(int orientation) {
   block_t ret;
   ret.kind = BLOCK_KIND_THRUSTER;
+  ret.as_thruster.throttle = 0;
 
   return ret;
 }
@@ -63,6 +64,7 @@ typedef struct construct_t {
   instance_buffer_t instance;
   map_t device_map;
   bool is_dirty;
+  vec2 velocity;
 } construct_t;
 
 static void block__external_call(chip_t *chip, block_t *block) {
@@ -96,7 +98,6 @@ static void block_chip__external_call(chip_t *chip) {
     }
   }
 }
-
 
 static block_t block_new_chip(allocator_t alloc, sz memory_size) {
   block_t ret;
