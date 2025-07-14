@@ -214,6 +214,11 @@ static void *map_get(map_t *map, map_key_t key) {
   return 0;
 }
 
+/// @brief Check if the value at key @ref key already exists
+static bool map_contains(map_t *map, map_key_t key) {
+  return map_get(map, key) != 0;
+}
+
 /// @brief Returns a typed pointer to a member at key `key`.
 /// Returns `NULL` if the key is not present.
 #define map_get_ty(ty, map, key) (ty *)map_get(map, key)
