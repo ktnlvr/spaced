@@ -15,7 +15,7 @@
 /// @memberof map_t
 #define MAP_MAX_CAPACITY (1 << 30)
 
-typedef u32 map_key_t;
+typedef u64 map_key_t;
 
 typedef map_key_t (*hash_function_f)(void *, sz);
 
@@ -26,7 +26,7 @@ typedef struct map_bucket_t {
 } map_bucket_t;
 
 typedef struct map_t {
-  /// @brief The allocator used for all 
+  /// @brief The allocator used for all
   /// memory management, used for allocating
   /// both the main and the secondary storages
   allocator_t allocator;
@@ -131,7 +131,8 @@ static void map_grow(map_t *map) {
   sz new_capacity = map_calculate_next_capacity(map);
 
   map_t new_map;
-  map_init_with_capacity(&new_map, map->allocator, map->entry_size, new_capacity);
+  map_init_with_capacity(&new_map, map->allocator, map->entry_size,
+                         new_capacity);
 
   for (sz i = 0; i < map->capacity; i++) {
     map_bucket_t *bucket = map__get_bucket_at(map, i);
