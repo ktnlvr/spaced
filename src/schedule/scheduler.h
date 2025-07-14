@@ -1,11 +1,11 @@
-#ifndef __H__SYSTEMS_SCHEDULER__
-#define __H__SYSTEMS_SCHEDULER__
+#ifndef __H__SCHEDULE_SCHEDULER__
+#define __H__SCHEDULE_SCHEDULER__
 
 #include <stdio.h>
 
 #include "../list.h"
 #include "../names.h"
-#include "require.h"
+#include "requirements.h"
 
 typedef enum {
   SCHEDULER_STRATEGY_RANDOM,
@@ -57,31 +57,6 @@ static void scheduler_add_system(scheduler_t *scheduler, system_req_t req,
   list_push_var(&scheduler->scheduler_systems[req.phase], system);
 }
 
-#define scheduler_declare_system_with_custom_runner(                           \
-    scheduler, mut, cons, system_name, runner_f, deps_on, dependency_count,    \
-    ...)                                                                       \
-  name_t runner_f##_name = as_name(#system_name);                              \
-  do {                                                                         \
-    system_req_t __system_req = __VA_ARGS__;                                   \
-    __system_req.name = runner_f##_name;                                       \
-    __system_req.depends_on = deps_on;                                         \
-    __system_req.depends_on_count = dependency_count;                          \
-    system_req_entity_kinds_const(&__system_req, cons);                        \
-    system_req_entity_kinds_mut(&__system_req, mut);                           \
-    scheduler_add_system(scheduler, __system_req, runner_f);                   \
-  } while (0)
-
-/// @brief Defines a new system with the name `system_name`
-/// that depends on the systems with the names from `depends_on`,
-/// and requires read only access to `cons` and mutable access to `mut`.
-/// Adds the system to the `scheduler`.
-/// @memberof scheduler_t
-#define scheduler_declare_system(scheduler, mut, cons, system_name,            \
-                                 depends_on, dependency_count, ...)            \
-  scheduler_declare_system_with_custom_runner(                                 \
-      scheduler, mut, cons, system_name, system_##system_name, depends_on,     \
-      dependency_count, __VA_ARGS__)
-
 static void scheduler_add_system_declared_specific_data(
     scheduler_t *scheduler, system_requirements_declaration_t *declaration,
     void *system_specific_data) {
@@ -101,12 +76,8 @@ static void scheduler_add_system_declared_specific_data(
   reqs.name = name;
   reqs.phase = declaration->phase;
   reqs.pin_to_main = declaration->pin_to_main;
-  reqs.resources = declaration->resources;
   reqs._entity_kinds_const = declaration->entities_const;
   reqs._entity_kinds_mut = declaration->entities_mut;
-
-  ASSERT__((reqs.resources & SYSTEM_RESOURCE_MASK_SYSTEM_SPECIFIC_DATA) ^
-           (system_specific_data == 0));
 
   system_runner_f runner = declaration->runner;
   scheduler_add_system(scheduler, reqs, runner);

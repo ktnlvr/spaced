@@ -1,14 +1,15 @@
 #ifndef __H__SYSTEMS_INPUT__
 #define __H__SYSTEMS_INPUT__
 
-#include "require.h"
+#include "../schedule/requirements.h"
 
 #include "../engine/input.h"
 
 static void system_process_input(system_payload_t payload,
                                  allocator_t temporary_allocator) {
-  input_t *input = payload.input;
-  GLFWwindow *window = payload.rendering_ctx->window;
+  input_t *input = resources_get_ty(input_t, payload.resources);
+  GLFWwindow *window =
+      resources_get_ty(rendering_ctx_t, payload.resources)->window;
 
   int keys[] = {GLFW_KEY_A, GLFW_KEY_D, GLFW_KEY_S, GLFW_KEY_W};
   int *outs[] = {&input->left, &input->right, &input->down, &input->up};
@@ -36,8 +37,6 @@ static system_requirements_declaration_t system_decl_process_input = {
     .entities_mut = 0,
     .phase = SYSTEM_PHASE_PRE_UPDATE,
     .pin_to_main = false,
-    .resources =
-        SYSTEM_RESOURCE_MASK_INPUT | SYSTEM_RESOURCE_MASK_RENDERING_CONTEXT,
     .runner = system_process_input};
 
 #endif

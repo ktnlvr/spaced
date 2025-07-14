@@ -4,3 +4,4 @@
 [ ] Clean up the build file
 [ ] Document the build process
 [ ] Use a separate struct for system requirements
+[ ] Cache payloads

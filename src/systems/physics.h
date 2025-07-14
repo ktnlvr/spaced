@@ -1,7 +1,7 @@
 #ifndef __H__SYSTEMS_PHYSICS__
 #define __H__SYSTEMS_PHYSICS__
 
-#include "require.h"
+#include "../schedule/requirements.h"
 
 static void system_integrate_velocity(system_payload_t payload,
                                       allocator_t temporary_allocator) {
@@ -22,7 +22,6 @@ static system_requirements_declaration_t system_decl_integrate_velocity = {
     .entities_const = 0,
     .entities_mut = ENTITY_KIND_CONSTRUCT,
     .phase = SYSTEM_PHASE_FIXED_UPDATE,
-    .resources = SYSTEM_RESOURCE_MASK_WORLD,
     .runner = system_integrate_velocity};
 
 #endif

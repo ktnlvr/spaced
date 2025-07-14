@@ -1,7 +1,7 @@
 #ifndef __H__SYSTEMS_CONSTRUCT__
 #define __H__SYSTEMS_CONSTRUCT__
 
-#include "require.h"
+#include "../schedule/requirements.h"
 
 #include "../rendering/image.h"
 #include "../rendering/quads.h"
@@ -17,7 +17,8 @@ typedef struct {
 static void system_render_constructs(system_payload_t payload,
                                      allocator_t temporary_allocator) {
   render_constructs_data_t *ptr =
-      (render_constructs_data_t *)payload.system_specific_data;
+      resources_get_ty(render_constructs_data_t, payload.resources);
+  world_t *world = resources_get_world(payload.resources);
 
   glUseProgram(ptr->program);
   glBindVertexArray(ptr->vao);
@@ -32,8 +33,7 @@ static void system_render_constructs(system_payload_t payload,
       glGetUniformLocation(ptr->program, "tileSizePixels");
   glUniform2i(tilemap_tile_size, 16, 16);
 
-  entity_iter_t it =
-      world_entity_iter_masked(payload.world, ENTITY_KIND_CONSTRUCT);
+  entity_iter_t it = world_entity_iter_masked(world, ENTITY_KIND_CONSTRUCT);
   while (entity_iter_next(&it)) {
     if (it.entity->as_construct.is_dirty) {
       instance_buffer_clear(&it.entity->as_construct.instance);
@@ -69,8 +69,6 @@ static system_requirements_declaration_t system_decl_render_constructs = {
     .dependencies = system_decl_render_constructs_deps,
     .dependency_count = 1,
     .pin_to_main = false,
-    .resources =
-        SYSTEM_RESOURCE_MASK_WORLD | SYSTEM_RESOURCE_MASK_SYSTEM_SPECIFIC_DATA,
     .runner = system_render_constructs};
 
 static void system_tick_thrusters(system_req_t payload, allocator_t _) {
@@ -104,7 +102,6 @@ static system_requirements_declaration_t system_decl_tick_thrusters = {
     .dependencies = 0,
     .dependency_count = 0,
     .pin_to_main = false,
-    .resources = SYSTEM_RESOURCE_MASK_WORLD,
     .runner = system_render_constructs};
 
 #endif

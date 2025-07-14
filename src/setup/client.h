@@ -10,12 +10,11 @@
 #include "../rendering/image.h"
 #include "../rendering/quads.h"
 #include "../rendering/shader.h"
+#include "../schedule/scheduler.h"
 #include "../systems/camera.h"
 #include "../systems/construct.h"
 #include "../systems/input.h"
 #include "../systems/physics.h"
-#include "../systems/require.h"
-#include "../systems/scheduler.h"
 
 typedef struct {
   shader_t tileset_shader;
@@ -91,11 +90,6 @@ static void client__schedule_rendering(client_data_t *data) {
 }
 
 static void client_schedule_systems(client_data_t *data) {
-  system_payload_t parent_payload = system_payload_new(
-      &data->world, &data->input, &data->rendering_ctx, 0., 0.);
-
-  scheduler_set_parent_payload(&data->scheduler, parent_payload);
-
   client__schedule_physics(data);
   client__schedule_rendering(data);
 
