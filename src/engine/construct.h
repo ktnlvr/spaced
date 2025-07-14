@@ -7,6 +7,8 @@
 #include "../rendering/instances.h"
 #include "../vec2i.h"
 
+#define CONSTRUCT_MAXIMUM_BLOCKS 255
+
 typedef enum {
   BLOCK_KIND_MESH,
   BLOCK_KIND_THRUSTER,
@@ -65,7 +67,24 @@ typedef struct construct_t {
   map_t device_map;
   bool is_dirty;
   vec2 velocity;
+  vec2 forces;
 } construct_t;
+
+static void construct_init(construct_t *construct, allocator_t alloc) {
+  list_init_ty(block_t, &construct->blocks, alloc);
+  instance_buffer_init(&construct->instance, alloc, CONSTRUCT_MAXIMUM_BLOCKS);
+  map_init_ty(vec2i, &construct->device_map, alloc);
+
+  construct->is_dirty = false;
+  construct->velocity = vec2_zero();
+  construct->forces = vec2_zero();
+}
+
+static void construct_cleanup(construct_t *construct) {
+  list_cleanup(&construct->blocks);
+  instance_buffer_cleanup(&construct->instance);
+  map_cleanup(&construct->device_map);
+}
 
 static void block__external_call(chip_t *chip, block_t *block) {
   switch (block->kind) {

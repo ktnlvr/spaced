@@ -80,4 +80,8 @@ static void instance_buffer_flush(instance_buffer_t *buffer) {
   }
 }
 
+static void instance_buffer_cleanup() {
+  PANIC_("Cleanup for instance buffers is not defined");
+}
+
 #endif

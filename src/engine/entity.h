@@ -11,7 +11,6 @@
 typedef u64 entity_id_t;
 
 #define ENTITY_ID_IDENTITY_MASK ((entity_id_t)0x000FFFFFFFFFFFFF)
-#define CONSTRUCT_MAXIMUM_COMPONENTS 255
 
 static u32 entity_id_get_generation(entity_id_t id) {
   u64 mask = ~ENTITY_ID_IDENTITY_MASK;
@@ -36,7 +35,7 @@ typedef enum {
   ENTITY_KIND_TOMBSTONE = 0,
   ENTITY_KIND_CONSTRUCT = 0b1,
   ENTITY_KIND_CAMERA = 0b10,
-  ENTITY_KIND_count = 3,
+  ENTITY_KIND_count = 2,
 } entity_kind_t;
 
 typedef entity_kind_t entity_kind_mask_t;
@@ -65,16 +64,12 @@ static void entity_init_construct(entity_t *entity, allocator_t alloc,
   entity->chunk_relative_position = chunk_relative;
   entity->chunk_local_position = chunk_local;
 
-  list_init_ty(block_t, &entity->as_construct.blocks, alloc);
-  instance_buffer_init(&entity->as_construct.instance, alloc,
-                       CONSTRUCT_MAXIMUM_COMPONENTS);
-  map_init_ty(vec2i, &entity->as_construct.device_map, alloc);
-  entity->as_construct.is_dirty = false;
-  entity->as_construct.velocity = vec2_zero();
+  construct_init(&entity->as_construct, alloc);
 }
 
 static void entity_construct_add_block(entity_t *entity, vec2i at,
                                        block_t block) {
+  ASSERT__(entity->kind == ENTITY_KIND_CONSTRUCT);
   block.offset = at;
   list_push_var(&entity->as_construct.blocks, block);
   entity->as_construct.is_dirty = true;
