@@ -1,0 +1,6 @@
+[ ] Cleanup all the extra memory leaks
+[ ] Fix the physics update
+[ ] Topologically sort all the systems
+[ ] Clean up the build file
+[ ] Document the build process
+[ ] Use a separate struct for system requirements
