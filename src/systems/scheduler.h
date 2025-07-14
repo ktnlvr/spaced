@@ -7,9 +7,6 @@
 #include "../names.h"
 #include "require.h"
 
-typedef void (*system_runner_f)(system_req_t payload,
-                                allocator_t temporary_allocator);
-
 typedef enum {
   SCHEDULER_STRATEGY_RANDOM,
 } scheduler_strategy_t;
@@ -20,16 +17,13 @@ typedef struct {
 } scheduler_system_t;
 
 typedef struct {
+  /// @brief Allocator for the data that persist over the scheduler's lifetime
   allocator_t persistent_allocator;
+  /// @brief Allocator for all data that lives for one frame
   allocator_t temporary_allocator;
   scheduler_strategy_t strategy;
 
-  bool is_requirement_list_set;
-  bool is_schedule_planned;
-  bool is_ticked;
-  bool is_running;
-
-  system_req_t requirements;
+  system_payload_t parent_payload;
   list_t *scheduler_systems;
 } scheduler_t;
 
@@ -42,9 +36,6 @@ static scheduler_t scheduler_new(scheduler_strategy_t strategy,
   ret.persistent_allocator = persistent_allocator;
 
   ret.strategy = strategy;
-  ret.is_requirement_list_set = false;
-  ret.is_ticked = false;
-  ret.is_running = false;
 
   ret.scheduler_systems = allocator_alloc_ty(list_t, ret.persistent_allocator,
                                              (int)SYSTEM_PHASE_count);
@@ -64,8 +55,6 @@ static void scheduler_add_system(scheduler_t *scheduler, system_req_t req,
   system.reqs = req;
 
   list_push_var(&scheduler->scheduler_systems[req.phase], system);
-
-  scheduler->is_schedule_planned = false;
 }
 
 #define scheduler_declare_system_with_custom_runner(                           \
@@ -92,6 +81,42 @@ static void scheduler_add_system(scheduler_t *scheduler, system_req_t req,
   scheduler_declare_system_with_custom_runner(                                 \
       scheduler, mut, cons, system_name, system_##system_name, depends_on,     \
       dependency_count, __VA_ARGS__)
+
+static void scheduler_add_system_declared_specific_data(
+    scheduler_t *scheduler, system_requirements_declaration_t *declaration,
+    void *system_specific_data) {
+  name_t name = as_name(declaration->name);
+
+  name_t *deps = 0;
+  if (declaration->dependencies) {
+    deps = allocator_alloc_ty(name_t, scheduler->persistent_allocator,
+                              declaration->dependency_count);
+    for (sz i = 0; i < declaration->dependency_count; i++)
+      deps[i] = as_name(declaration->dependencies[i]);
+  }
+
+  system_req_t reqs;
+  reqs.depends_on = deps;
+  reqs.depends_on_count = declaration->dependency_count;
+  reqs.name = name;
+  reqs.phase = declaration->phase;
+  reqs.pin_to_main = declaration->pin_to_main;
+  reqs.resources = declaration->resources;
+  reqs._entity_kinds_const = declaration->entities_const;
+  reqs._entity_kinds_mut = declaration->entities_mut;
+
+  ASSERT__((reqs.resources & SYSTEM_RESOURCE_MASK_SYSTEM_SPECIFIC_DATA) ^
+           (system_specific_data == 0));
+
+  system_runner_f runner = declaration->runner;
+  scheduler_add_system(scheduler, reqs, runner);
+}
+
+static void
+scheduler_add_system_declared(scheduler_t *scheduler,
+                              system_requirements_declaration_t *declaration) {
+  scheduler_add_system_declared_specific_data(scheduler, declaration, 0);
+}
 
 static void scheduler_dump_dependency_graph(scheduler_t *scheduler, FILE *out) {
   sz capacity = 0;
@@ -181,61 +206,32 @@ static void scheduler__topological_sort(allocator_t alloc,
   map_cleanup(&coordinate_compression_reverse);
 }
 
-static void scheduler_plan(scheduler_t *scheduler) {
-  ASSERT_(!scheduler->is_running,
-          "Attempt to change plans while the scheduler is running");
-
-  scheduler->is_schedule_planned = true;
-}
-
-static void scheduler_set_requirements(scheduler_t *scheduler,
-                                       system_req_t reqs) {
-  scheduler->requirements = reqs;
-  scheduler->is_requirement_list_set = true;
+static void scheduler_set_parent_payload(scheduler_t *scheduler,
+                                         system_payload_t payload) {
+  scheduler->parent_payload = payload;
 }
 
 /// Update all the active data members of a scheduler
 /// like delta_time
 static void scheduler_tick(scheduler_t *scheduler, double delta_time) {
-  scheduler->requirements.delta_time = delta_time;
-  scheduler->is_ticked = true;
+  scheduler->parent_payload.delta_time = delta_time;
 }
 
 static void scheduler_begin_running(scheduler_t *scheduler) {
-  ASSERT_(scheduler->is_requirement_list_set,
-          "The requirement list must be set before running");
-  ASSERT_(scheduler->is_schedule_planned,
-          "The scheduler must have planned the system order");
-  ASSERT_(scheduler->is_ticked,
-          "The scheduler must be ticked every time before running");
-  ASSERT_(!scheduler->is_running, "The scheduler is already running");
-
   for (int phase_idx = 0; phase_idx < (int)SYSTEM_PHASE_count; phase_idx++) {
     list_t *sys_list = &scheduler->scheduler_systems[phase_idx];
 
     for (sz i = 0; i < sys_list->size; i++) {
       scheduler_system_t *system =
           list_get_ty_ptr(scheduler_system_t, sys_list, i);
-      system_req_fill_in(&system->reqs, scheduler->requirements);
-    }
-  }
 
-  scheduler->is_running = true;
-
-  for (int phase_idx = 0; phase_idx < (int)SYSTEM_PHASE_count; phase_idx++) {
-    list_t *sys_list = &scheduler->scheduler_systems[phase_idx];
-
-    for (sz i = 0; i < sys_list->size; i++) {
-      scheduler_system_t *system =
-          list_get_ty_ptr(scheduler_system_t, sys_list, i);
-      system->runner(system->reqs, scheduler->temporary_allocator);
+      system_payload_t payload =
+          system_payload_new_inherit(system->reqs, &scheduler->parent_payload);
+      system->runner(payload, scheduler->temporary_allocator);
     }
   }
 }
 
-static void scheduler_end_running(scheduler_t *scheduler) {
-  scheduler->is_running = false;
-  scheduler->is_ticked = false;
-}
+static void scheduler_end_running(scheduler_t *scheduler) {}
 
 #endif

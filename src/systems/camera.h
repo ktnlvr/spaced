@@ -6,7 +6,7 @@
 
 #define CAMERA_SPEED 2.5
 
-static void system_camera_move(system_req_t payload,
+static void system_camera_move(system_payload_t payload,
                                allocator_t temporary_allocator) {
   entity_iter_t it = world_entity_iter(payload.world);
 
@@ -22,7 +22,18 @@ static void system_camera_move(system_req_t payload,
   }
 }
 
-static void system_camera_set_projection(system_req_t payload,
+static system_requirements_declaration_t system_decl_camera_move = {
+    .name = "system_camera_move",
+    .phase = SYSTEM_PHASE_UPDATE,
+    .pin_to_main = false,
+    .dependencies = 0,
+    .dependency_count = 0,
+    .entities_mut = ENTITY_KIND_CAMERA,
+    .entities_const = 0,
+    .resources = SYSTEM_RESOURCE_MASK_INPUT,
+    .runner = system_camera_move};
+
+static void system_camera_set_projection(system_payload_t payload,
                                          allocator_t temporary_allocator) {
   shader_t *shader_ptr = (shader_t *)payload.system_specific_data;
   GLuint program = shader_ptr->gl_program;
@@ -40,5 +51,16 @@ static void system_camera_set_projection(system_req_t payload,
     break;
   }
 }
+
+static system_requirements_declaration_t system_decl_camera_set_projection = {
+    .name = "system_camera_set_projection",
+    .phase = SYSTEM_PHASE_UPDATE,
+    .pin_to_main = false,
+    .dependencies = 0,
+    .dependency_count = 0,
+    .entities_mut = ENTITY_KIND_CAMERA,
+    .entities_const = 0,
+    .resources = SYSTEM_RESOURCE_MASK_SYSTEM_SPECIFIC_DATA,
+    .runner = system_camera_set_projection};
 
 #endif

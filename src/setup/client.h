@@ -66,44 +66,17 @@ static void client_data_init(client_data_t *data, allocator_t alloc) {
 }
 
 static void client__schedule_physics(client_data_t *data) {
-  scheduler_declare_system(&data->scheduler, ENTITY_KIND_CONSTRUCT,
-                           ENTITY_KIND_CONSTRUCT, integrate_velocity,
-                           SYSTEM_REQ_NO_DEPS,
-                           {
-                               .phase = SYSTEM_PHASE_POST_UPDATE,
-                               .world = (world_t *)1,
-                           });
+  scheduler_t *s = &data->scheduler;
 
-  scheduler_declare_system(&data->scheduler, ENTITY_KIND_CONSTRUCT,
-                           ENTITY_KIND_CONSTRUCT, tick_thrusters,
-                           SYSTEM_REQ_NO_DEPS,
-                           {
-                               .phase = SYSTEM_PHASE_PRE_RENDER,
-                               .world = (world_t *)1,
-                           });
+  scheduler_add_system_declared(s, &system_decl_integrate_velocity);
+
+  scheduler_add_system_declared(s, &system_decl_tick_thrusters);
 }
 
 static void client__schedule_rendering(client_data_t *data) {
-  scheduler_declare_system(&data->scheduler, ENTITY_KIND_CAMERA,
-                           ENTITY_KIND_MASK_EMPTY, camera_move,
-                           SYSTEM_REQ_NO_DEPS,
-                           {
-                               .phase = SYSTEM_PHASE_PRE_RENDER,
-                               .world = (world_t *)1,
-                               .input = (input_t *)1,
-                           });
+  scheduler_t *s = &data->scheduler;
 
-  name_t deps_proj[] = {system_camera_move_name};
-  scheduler_declare_system(
-      &data->scheduler, ENTITY_KIND_CAMERA, ENTITY_KIND_MASK_EMPTY,
-      camera_set_projection, deps_proj, 1,
-      {
-          .phase = SYSTEM_PHASE_PRE_RENDER,
-          .system_specific_data = &data->assets.tileset_shader,
-          .world = (world_t *)1,
-          .input = (input_t *)1,
-          .rendering_ctx = (rendering_ctx_t *)1,
-      });
+  scheduler_add_system_declared(s, &system_decl_camera_move);
 
   render_constructs_data_t *render_constructs_data = allocator_alloc_ty(
       render_constructs_data_t, data->scheduler.persistent_allocator, 1);
@@ -111,41 +84,22 @@ static void client__schedule_rendering(client_data_t *data) {
   render_constructs_data->image = &data->assets.tileset_image;
   render_constructs_data->program = data->assets.tileset_shader.gl_program;
   render_constructs_data->vao = _gl_quad_vao;
+  scheduler_add_system_declared_specific_data(s, &system_decl_render_constructs,
+                                              render_constructs_data);
 
-  name_t deps_render_constructs[] = {system_camera_move_name};
-  scheduler_declare_system(&data->scheduler, ENTITY_KIND_CONSTRUCT,
-                           ENTITY_KIND_MASK_EMPTY, render_constructs,
-                           deps_render_constructs, 1,
-                           {
-                               .phase = SYSTEM_PHASE_RENDER,
-                               .system_specific_data = render_constructs_data,
-                               .world = (world_t *)1,
-                               .input = (input_t *)1,
-                               .rendering_ctx = (rendering_ctx_t *)1,
-                           });
-
-  scheduler_declare_system(&data->scheduler, ENTITY_KIND_MASK_EMPTY,
-                           ENTITY_KIND_MASK_EMPTY, process_input,
-                           SYSTEM_REQ_NO_DEPS,
-                           {
-                               .phase = SYSTEM_PHASE_PRE_UPDATE,
-                               .input = (input_t *)1,
-                               .rendering_ctx = (rendering_ctx_t *)1,
-                           });
+  scheduler_add_system_declared(s, &system_decl_process_input);
 }
 
 static void client_schedule_systems(client_data_t *data) {
-  system_req_t reqs = system_req_new();
-  reqs.input = &data->input;
-  reqs.rendering_ctx = &data->rendering_ctx;
-  reqs.world = &data->world;
-  scheduler_set_requirements(&data->scheduler, reqs);
+  system_payload_t parent_payload = system_payload_new(
+      &data->world, &data->input, &data->rendering_ctx, 0., 0.);
+
+  scheduler_set_parent_payload(&data->scheduler, parent_payload);
 
   client__schedule_physics(data);
   client__schedule_rendering(data);
 
   FILE *f = fopen("./schedule.tmp.graphviz", "w+");
-  scheduler_plan(&data->scheduler);
   scheduler_dump_dependency_graph(&data->scheduler, f);
   fclose(f);
 }

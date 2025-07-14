@@ -14,7 +14,7 @@ typedef struct {
   image_t *image;
 } render_constructs_data_t;
 
-static void system_render_constructs(system_req_t payload,
+static void system_render_constructs(system_payload_t payload,
                                      allocator_t temporary_allocator) {
   render_constructs_data_t *ptr =
       (render_constructs_data_t *)payload.system_specific_data;
@@ -58,8 +58,23 @@ static void system_render_constructs(system_req_t payload,
   }
 }
 
+static const char *system_decl_render_constructs_deps[] = {
+    "system_camera_move"};
+
+static system_requirements_declaration_t system_decl_render_constructs = {
+    .name = "system_render_constructs",
+    .phase = SYSTEM_PHASE_RENDER,
+    .entities_const = 0,
+    .entities_mut = ENTITY_KIND_CONSTRUCT,
+    .dependencies = system_decl_render_constructs_deps,
+    .dependency_count = 1,
+    .pin_to_main = false,
+    .resources =
+        SYSTEM_RESOURCE_MASK_WORLD | SYSTEM_RESOURCE_MASK_SYSTEM_SPECIFIC_DATA,
+    .runner = system_render_constructs};
+
 static void system_tick_thrusters(system_req_t payload, allocator_t _) {
-  entity_iter_t it = system_req_entity_iter(&payload);
+  entity_iter_t it = system_payload_entity_iter(&payload);
   while (entity_iter_next(&it)) {
     ASSERT__(it.entity->kind == ENTITY_KIND_CONSTRUCT);
 
@@ -80,5 +95,16 @@ static void system_tick_thrusters(system_req_t payload, allocator_t _) {
     }
   }
 }
+
+static system_requirements_declaration_t system_decl_tick_thrusters = {
+    .name = "system_tick_thrusters",
+    .phase = SYSTEM_PHASE_FIXED_UPDATE,
+    .entities_const = 0,
+    .entities_mut = ENTITY_KIND_CONSTRUCT,
+    .dependencies = 0,
+    .dependency_count = 0,
+    .pin_to_main = false,
+    .resources = SYSTEM_RESOURCE_MASK_WORLD,
+    .runner = system_render_constructs};
 
 #endif
