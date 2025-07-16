@@ -200,6 +200,9 @@ static void map_insert(map_t *map, map_key_t key, void *data, sz size) {
 /// Returns @ref NULL if no element found. O(1*)
 /// @memberof map_t
 static void *map_get(map_t *map, map_key_t key) {
+  if (map->entry_size == 0)
+    return 0;
+
   sz idx = key % map->capacity;
 
   map_bucket_t *b = map__get_bucket_at(map, idx);

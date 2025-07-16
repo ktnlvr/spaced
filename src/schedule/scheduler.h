@@ -23,29 +23,28 @@ typedef struct {
   allocator_t temporary_allocator;
   scheduler_strategy_t strategy;
 
+  resources_t resources;
   system_payload_t parent_payload;
   list_t *scheduler_systems;
 } scheduler_t;
 
-static scheduler_t scheduler_new(scheduler_strategy_t strategy,
-                                 allocator_t persistent_allocator,
-                                 allocator_t temporary_allocator) {
-  scheduler_t ret;
+static scheduler_init(scheduler_t *scheduler, scheduler_strategy_t strategy,
+                      allocator_t persistent_allocator,
+                      allocator_t temporary_allocator) {
+  scheduler->temporary_allocator = temporary_allocator;
+  scheduler->persistent_allocator = persistent_allocator;
+  scheduler->parent_payload.resources = &scheduler->resources;
 
-  ret.temporary_allocator = temporary_allocator;
-  ret.persistent_allocator = persistent_allocator;
+  scheduler->strategy = strategy;
 
-  ret.strategy = strategy;
+  resources_init(&scheduler->resources, persistent_allocator);
 
-  ret.scheduler_systems = allocator_alloc_ty(list_t, ret.persistent_allocator,
-                                             (int)SYSTEM_PHASE_count);
+  scheduler->scheduler_systems = allocator_alloc_ty(
+      list_t, scheduler->persistent_allocator, SYSTEM_PHASE_count);
 
-  for (int i = 0; i < SYSTEM_PHASE_count; i++) {
-    list_init_ty(scheduler_system_t, &ret.scheduler_systems[i],
-                 ret.persistent_allocator);
-  }
-
-  return ret;
+  for (int i = 0; i < SYSTEM_PHASE_count; i++)
+    list_init_ty(scheduler_system_t, &scheduler->scheduler_systems[i],
+                 scheduler->persistent_allocator);
 }
 
 static void scheduler_add_system(scheduler_t *scheduler, system_req_t req,

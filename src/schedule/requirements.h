@@ -68,9 +68,7 @@ static system_payload_t system_payload_new_inherit(system_req_t requirements,
                                                    system_payload_t *parent) {
   system_payload_t ret = {};
 
-  ASSERT__(__builtin_popcount(parent->_entity_kinds_mut) <=
-           __builtin_popcount(parent->_entity_kinds_const));
-
+  ret.resources = parent->resources;
   ret._entity_kinds_const =
       parent->_entity_kinds_const | parent->_entity_kinds_mut;
   ret._entity_kinds_mut = parent->_entity_kinds_mut;

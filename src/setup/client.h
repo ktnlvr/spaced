@@ -21,67 +21,36 @@ typedef struct {
   image_t tileset_image;
 } global_assets_t;
 
-typedef struct {
-  allocator_t alloc;
-  world_t world;
-  rendering_ctx_t rendering_ctx;
-  input_t input;
-  scheduler_t scheduler;
-
-  global_assets_t assets;
-} client_data_t;
-
-static void client_data__load_assets(client_data_t *data) {
+static void global_assets_load(global_assets_t *assets, allocator_t alloc) {
   sz file_size;
+
+  /// XXX: leak
   void *file_buffer =
-      read_binary_file(data->alloc, "./assets/tileset.png", &file_size);
+      read_binary_file(alloc, "./assets/tileset.png", &file_size);
 
-  image_init(&data->assets.tileset_image, data->alloc, file_buffer, file_size);
-  allocator_free(data->alloc, file_buffer);
-  image_bind(&data->assets.tileset_image);
+  image_init(&assets->tileset_image, alloc, file_buffer, file_size);
+  image_bind(&assets->tileset_image);
 
-  char *vertex_source = read_text_file(data->alloc, "./assets/tileset.vert");
-  char *fragment_source = read_text_file(data->alloc, "./assets/tileset.frag");
+  char *vertex_source = read_text_file(alloc, "./assets/tileset.vert");
+  char *fragment_source = read_text_file(alloc, "./assets/tileset.frag");
 
-  shader_init(&data->assets.tileset_shader, vertex_source, fragment_source);
+  shader_init(&assets->tileset_shader, vertex_source, fragment_source);
 }
 
-static void client_data_init(client_data_t *data, allocator_t alloc) {
-  names_init();
-
-  data->alloc = alloc;
-
-  world_init(&data->world);
-
-  rendering_ctx_init(&data->rendering_ctx);
-  rendering_ctx_show_window(&data->rendering_ctx);
-  gl_quad_init();
-
-  input_init(&data->input);
-
-  data->scheduler = scheduler_new(SCHEDULER_STRATEGY_RANDOM, alloc, alloc);
-
-  client_data__load_assets(data);
-}
-
-static void client__schedule_physics(client_data_t *data) {
-  scheduler_t *s = &data->scheduler;
-
+static void client__schedule_physics(scheduler_t *s) {
   scheduler_add_system_declared(s, &system_decl_integrate_velocity);
-
   scheduler_add_system_declared(s, &system_decl_tick_thrusters);
 }
 
-static void client__schedule_rendering(client_data_t *data) {
-  scheduler_t *s = &data->scheduler;
-
+static void client__schedule_rendering(global_assets_t *assets,
+                                       scheduler_t *s) {
   scheduler_add_system_declared(s, &system_decl_camera_move);
 
-  render_constructs_data_t *render_constructs_data = allocator_alloc_ty(
-      render_constructs_data_t, data->scheduler.persistent_allocator, 1);
+  render_constructs_data_t *render_constructs_data =
+      allocator_alloc_ty(render_constructs_data_t, s->persistent_allocator, 1);
 
-  render_constructs_data->image = &data->assets.tileset_image;
-  render_constructs_data->program = data->assets.tileset_shader.gl_program;
+  render_constructs_data->image = &assets->tileset_image;
+  render_constructs_data->program = assets->tileset_shader.gl_program;
   render_constructs_data->vao = _gl_quad_vao;
   scheduler_add_system_declared_specific_data(s, &system_decl_render_constructs,
                                               render_constructs_data);
@@ -89,12 +58,13 @@ static void client__schedule_rendering(client_data_t *data) {
   scheduler_add_system_declared(s, &system_decl_process_input);
 }
 
-static void client_schedule_systems(client_data_t *data) {
-  client__schedule_physics(data);
-  client__schedule_rendering(data);
+static void client_schedule_systems(global_assets_t *assets,
+                                    scheduler_t *scheduler) {
+  client__schedule_physics(scheduler);
+  client__schedule_rendering(assets, scheduler);
 
   FILE *f = fopen("./schedule.tmp.graphviz", "w+");
-  scheduler_dump_dependency_graph(&data->scheduler, f);
+  scheduler_dump_dependency_graph(&scheduler, f);
   fclose(f);
 }
 
